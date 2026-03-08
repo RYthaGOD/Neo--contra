@@ -1,35 +1,40 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from 'react';
+import { SolanaProvider } from './context/SolanaProvider';
+import { GameProvider, useGame } from './context/GameContext';
+import GameView from './ui/components/GameView';
+import { HUD } from './ui/components/HUD';
+import { ShopUI } from './ui/components/ShopUI';
+import { LeaderboardUI } from './ui/components/LeaderboardUI';
+import { MobileControls } from './ui/components/MobileControls';
 
-function App() {
-  const [count, setCount] = useState(0)
+function AppContent() {
+  const { state } = useGame();
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="min-h-screen bg-black text-neon-green font-retro overflow-hidden flex flex-col items-center justify-center p-4">
+      <div id="game-container" className="relative border-4 border-neon-purple shadow-[0_0_30px_rgba(188,19,254,0.4)] aspect-[4/3] w-full max-w-[800px] crt">
+        <GameView />
+        <HUD />
+        {state.isShopOpen && <ShopUI />}
+        {state.isGameOver && <LeaderboardUI />}
+        <MobileControls />
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+
+      <div className="mt-4 text-[10px] text-neon-blue opacity-50 uppercase tracking-tighter">
+        NeoContra: Solana Assault // Protocol v0.1.0
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </div>
+  );
 }
 
-export default App
+function App() {
+  return (
+    <SolanaProvider>
+      <GameProvider>
+        <AppContent />
+      </GameProvider>
+    </SolanaProvider>
+  );
+}
+
+export default App;

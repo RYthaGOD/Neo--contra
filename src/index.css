@@ -1,68 +1,155 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+  background-color: #000000;
+  color: #00ff00;
 }
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  overflow: hidden;
+  font-family: 'Press Start 2P', cursive;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+/* CRT Effect Overlay */
+.crt::before {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  z-index: 200;
+  background-size: 100% 2px, 3px 100%;
+  pointer-events: none;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+.crt::after {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: rgba(18, 16, 16, 0.1);
+  opacity: 0;
+  z-index: 200;
+  pointer-events: none;
+  animation: flicker 0.15s infinite;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
+@keyframes flicker {
+  0% {
+    opacity: 0.27861;
   }
-  a:hover {
-    color: #747bff;
+
+  5% {
+    opacity: 0.34769;
   }
-  button {
-    background-color: #f9f9f9;
+
+  10% {
+    opacity: 0.23604;
   }
+
+  15% {
+    opacity: 0.90626;
+  }
+
+  20% {
+    opacity: 0.18128;
+  }
+
+  25% {
+    opacity: 0.83891;
+  }
+
+  30% {
+    opacity: 0.65583;
+  }
+
+  35% {
+    opacity: 0.57807;
+  }
+
+  40% {
+    opacity: 0.26559;
+  }
+
+  45% {
+    opacity: 0.84693;
+  }
+
+  50% {
+    opacity: 0.96019;
+  }
+
+  55% {
+    opacity: 0.08523;
+  }
+
+  60% {
+    opacity: 0.71056;
+  }
+
+  65% {
+    opacity: 0.73477;
+  }
+
+  70% {
+    opacity: 0.85823;
+  }
+
+  75% {
+    opacity: 0.34903;
+  }
+
+  80% {
+    opacity: 0.95654;
+  }
+
+  85% {
+    opacity: 0.9114;
+  }
+
+  90% {
+    opacity: 0.55125;
+  }
+
+  95% {
+    opacity: 0.05444;
+  }
+
+  100% {
+    opacity: 0.08648;
+  }
+}
+
+#game-container {
+  width: 800px;
+  height: 600px;
+  cursor: crosshair;
+}
+
+canvas {
+  display: block;
+}
+
+/* Custom scrollbar for retro feel */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #bc13fe;
 }
