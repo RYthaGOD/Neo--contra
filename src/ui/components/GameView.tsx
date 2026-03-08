@@ -7,7 +7,7 @@ import { useGame } from '../../context/GameContext';
 
 const GameView: React.FC = () => {
     const gameRef = useRef<Phaser.Game | null>(null);
-    const { state, updateScore, updateLives, toggleShop, setGameOver, resetGame } = useGame();
+    const { state, updateScore, updateLives, toggleShop, setGameOver, resetGame, setWeapon } = useGame();
 
     useEffect(() => {
         if (!gameRef.current) return;
@@ -16,7 +16,8 @@ const GameView: React.FC = () => {
         game.registry.set('score', state.score);
         game.registry.set('isGameOver', state.isGameOver);
         game.registry.set('isShopOpen', state.isShopOpen);
-    }, [state.lives, state.score, state.isGameOver, state.isShopOpen]);
+        game.registry.set('weapon', state.weapon);
+    }, [state.lives, state.score, state.isGameOver, state.isShopOpen, state.weapon]);
 
     useEffect(() => {
         if (!gameRef.current) {
@@ -35,6 +36,7 @@ const GameView: React.FC = () => {
         game.registry.set('react_toggleShop', toggleShop);
         game.registry.set('react_setGameOver', setGameOver);
         game.registry.set('react_resetGame', resetGame);
+        game.registry.set('react_updateWeapon', setWeapon);
 
         return () => {
             if (gameRef.current) {

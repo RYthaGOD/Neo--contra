@@ -15,6 +15,7 @@ export class GameScene extends Phaser.Scene {
     private mobileDir = { x: 0, y: 0 };
     private currentLevelIndex: number = 0;
     private levelData: LevelData = LEVELS[0];
+    private invulnerable: boolean = false;
 
     private handlers: { [key: string]: (e: any) => void } = {};
 
@@ -124,6 +125,8 @@ export class GameScene extends Phaser.Scene {
     }
 
     private handlePlayerHit() {
+        if (this.invulnerable) return; // Barrier active
+
         this.player.setTint(0xff0000);
         this.updateLives(-1);
 
@@ -216,16 +219,42 @@ export class GameScene extends Phaser.Scene {
 
     private shoot() {
         const angle = this.getAimAngle();
-        const offsetX = Math.cos(angle) * 20;
-        const offsetY = Math.sin(angle) * 20;
-        this.bullets.fireBullet(this.player.x + offsetX, this.player.y + offsetY, angle);
+        const weaponType = this.registry.get('weapon') || 'NORMAL';
+
+        const fire = (ang: number) => {
+            const offsetX = Math.cos(ang) * 20;
+            const offsetY = Math.sin(ang) * 20;
+            this.bullets.fireBullet(this.player.x + offsetX, this.player.y + offsetY, ang, weaponType);
+        };
+
+        switch (weaponType) {
+            case 'S': // Spread: 5 bullets
+                [-0.4, -0.2, 0, 0.2, 0.4].forEach(off => fire(angle + off));
+                break;
+            case 'B': // Barrier: Temporary invulnerability
+                this.activateBarrier();
+                break;
+            default:
+                fire(angle);
+        }
 
         sounds.playSFX('laser_fire');
-
-        // Note: Boss damage is now handled by physics overlap in create()
-
-        // Placeholder score increment
         this.updateScore(10);
+    }
+
+    private activateBarrier() {
+        if (this.invulnerable) return;
+        this.invulnerable = true;
+        this.player.setAlpha(0.5);
+        this.player.setTint(0x00ffff);
+
+        // Return to normal weapon after activation? No, original barrier is a duration.
+        this.time.delayedCall(10000, () => {
+            this.invulnerable = false;
+            this.player.setAlpha(1);
+            this.player.clearTint();
+            this.registry.get('react_updateWeapon')?.('NORMAL');
+        });
     }
 
     private spawnEnemies() {

@@ -3,19 +3,11 @@ export const DEV_WALLET = import.meta.env.VITE_DEV_WALLET;
 
 export const PRICES = {
     EXTRA_LIFE: 10,
-    CONTINUE: 25,
-    POWER_UP: 5,
-    HEALTH_RESTORE: 8,
-    CONTINUE_PACK: 60,
+    MINTING_GUN: 50,
+    SOLANA_SPREAD: 150,
+    LAYER_ZERO_LASER: 200,
+    FIREDANCER_FIRE: 100,
+    BLOCK_BARRIER: 300,
 };
 
-export const LEVELS = [
-    'Neon Jungle Base',
-    'Cyber Waterfall Ruins',
-    'Blockchain Ice Fortress',
-    'DeFi Volcano Core',
-    'Matrix Underground Labs',
-    'Token Storm Skies',
-    'Staking Canyon',
-    'The Validator'
-];
+export type WeaponType = 'NORMAL' | 'M' | 'S' | 'L' | 'F' | 'B';

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PRICES, DEV_WALLET } from '../../config/constants';
+import { PRICES, DEV_WALLET, WeaponType } from '../../config/constants';
 import { useGame } from '../../context/GameContext';
 import { useSKR } from '../../hooks/useSKR';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
@@ -7,7 +7,7 @@ import { buyItem } from '../../solana/TransactionLogic';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 
 export const ShopUI: React.FC = () => {
-    const { toggleShop, updateLives } = useGame();
+    const { toggleShop, updateLives, setWeapon } = useGame();
     const { refresh } = useSKR();
     const { connection } = useConnection();
     const wallet = useWallet();
@@ -24,7 +24,11 @@ export const ShopUI: React.FC = () => {
             setStatus('success');
 
             // Apply game effects
-            if (name === 'Extra Life') updateLives(1);
+            if (name === 'Extra Life') {
+                updateLives(1);
+            } else {
+                setWeapon(name as WeaponType);
+            }
 
             refresh(); // Update SKR balance
         } catch (err) {
@@ -68,11 +72,13 @@ export const ShopUI: React.FC = () => {
                     </div>
                 ) : (
                     <>
-                        <div className="grid grid-cols-2 gap-6 relative z-10">
+                        <div className="grid grid-cols-2 gap-4 relative z-10 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                             <ShopItem name="Extra Life" price={PRICES.EXTRA_LIFE} onBuy={() => handlePurchase('Extra Life', PRICES.EXTRA_LIFE)} />
-                            <ShopItem name="Power-Up" price={PRICES.POWER_UP} onBuy={() => handlePurchase('Power-Up', PRICES.POWER_UP)} />
-                            <ShopItem name="Health Restore" price={PRICES.HEALTH_RESTORE} onBuy={() => handlePurchase('Health Restore', PRICES.HEALTH_RESTORE)} />
-                            <ShopItem name="Continue Pack" price={PRICES.CONTINUE_PACK} onBuy={() => handlePurchase('Continue Pack', PRICES.CONTINUE_PACK)} />
+                            <ShopItem name="Minting Gun (M)" price={PRICES.MINTING_GUN} onBuy={() => handlePurchase('M', PRICES.MINTING_GUN)} />
+                            <ShopItem name="Solana Spread (S)" price={PRICES.SOLANA_SPREAD} onBuy={() => handlePurchase('S', PRICES.SOLANA_SPREAD)} />
+                            <ShopItem name="Layer-Zero Laser (L)" price={PRICES.LAYER_ZERO_LASER} onBuy={() => handlePurchase('L', PRICES.LAYER_ZERO_LASER)} />
+                            <ShopItem name="Firedancer Fire (F)" price={PRICES.FIREDANCER_FIRE} onBuy={() => handlePurchase('F', PRICES.FIREDANCER_FIRE)} />
+                            <ShopItem name="Block Barrier (B)" price={PRICES.BLOCK_BARRIER} onBuy={() => handlePurchase('B', PRICES.BLOCK_BARRIER)} />
                         </div>
 
                         <button

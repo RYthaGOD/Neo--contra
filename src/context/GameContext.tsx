@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
+import { WeaponType } from '../config/constants';
 
 interface GameState {
     lives: number;
     score: number;
-    weapon: string;
+    weapon: WeaponType;
     isShopOpen: boolean;
     isGameOver: boolean;
 }
@@ -12,7 +13,7 @@ interface GameContextType {
     state: GameState;
     updateScore: (val: number) => void;
     updateLives: (val: number) => void;
-    setWeapon: (val: string) => void;
+    setWeapon: (val: WeaponType) => void;
     toggleShop: (open: boolean) => void;
     setGameOver: (over: boolean) => void;
     resetGame: () => void;
@@ -24,7 +25,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [state, setState] = useState<GameState>({
         lives: 3,
         score: 0,
-        weapon: 'Base',
+        weapon: 'NORMAL',
         isShopOpen: false,
         isGameOver: false,
     });
@@ -44,7 +45,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
     }, []);
 
-    const setWeapon = useCallback((val: string) => {
+    const setWeapon = useCallback((val: WeaponType) => {
         setState(prev => ({ ...prev, weapon: val }));
     }, []);
 
@@ -60,7 +61,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setState({
             lives: 3,
             score: 0,
-            weapon: 'Base',
+            weapon: 'NORMAL',
             isShopOpen: false,
             isGameOver: false,
         });
