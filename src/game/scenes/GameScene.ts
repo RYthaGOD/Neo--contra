@@ -1,8 +1,8 @@
-import Phaser from 'phaser';
 import { BulletPool } from '../entities/BulletPool';
 import { Enemy } from '../entities/Enemy';
-import { Boss } from '../entities/Boss';
+import { DeFiDestroyer, FlashLoanFalcon, RugPullReaper, HashRateHydra, SatoshiSentinel, BossBase } from '../entities/Bosses';
 import { sounds } from '../SoundManager';
+import { LEVELS, LevelData } from '../LevelConfig';
 
 export class GameScene extends Phaser.Scene {
     public player!: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
@@ -11,9 +11,12 @@ export class GameScene extends Phaser.Scene {
     public bullets!: BulletPool;
     private enemies!: Phaser.Physics.Arcade.Group;
     private platforms!: Phaser.Physics.Arcade.StaticGroup;
-    private boss?: Boss;
+    private boss?: BossBase;
     private mobileDir = { x: 0, y: 0 };
-    private difficulty: number = 1;
+    private currentLevelIndex: number = 0;
+    private levelData: LevelData = LEVELS[0];
+
+    private handlers: { [key: string]: (e: any) => void } = {};
 
     constructor() {
         super('GameScene');
@@ -28,16 +31,7 @@ export class GameScene extends Phaser.Scene {
 
         // Add platforms
         this.platforms = this.physics.add.staticGroup();
-
-        // Ground
-        for (let i = 0; i < 100; i++) {
-            this.platforms.create(i * 32, 580, 'platform');
-        }
-
-        // Floating Platforms
-        this.platforms.create(400, 450, 'platform').setScale(4, 1).refreshBody();
-        this.platforms.create(800, 350, 'platform').setScale(4, 1).refreshBody();
-        this.platforms.create(1200, 450, 'platform').setScale(4, 1).refreshBody();
+        this.generatePlatforms();
 
         // Add player
         this.player = this.physics.add.sprite(100, 500, 'player_placeholder');
@@ -45,16 +39,23 @@ export class GameScene extends Phaser.Scene {
 
         // Controls
         // Mobile Controls Bridge
-        window.addEventListener('game_jump', () => {
+        // Mobile Controls Bridge
+        this.handlers.jump = () => {
             if (this.player.body.blocked.down) {
-                this.player.setVelocityY(-300);
+                this.player.setVelocityY(-400); // Slightly stronger jump for mobile
             }
-        });
-        window.addEventListener('game_fire', () => {
-            this.shoot();
-        });
-        window.addEventListener('game_move', (e: any) => {
-            this.mobileDir = e.detail;
+        };
+        this.handlers.fire = () => this.shoot();
+        this.handlers.move = (e: any) => { this.mobileDir = e.detail; };
+
+        window.addEventListener('game_jump', this.handlers.jump);
+        window.addEventListener('game_fire', this.handlers.fire);
+        window.addEventListener('game_move', this.handlers.move);
+
+        this.events.on('shutdown', () => {
+            window.removeEventListener('game_jump', this.handlers.jump);
+            window.removeEventListener('game_fire', this.handlers.fire);
+            window.removeEventListener('game_move', this.handlers.move);
         });
 
         sounds.playBGM('neon_jungle');
@@ -95,16 +96,31 @@ export class GameScene extends Phaser.Scene {
             this.handlePlayerHit();
         });
 
+        // Bullet -> Boss overlap (using Phaser physics instead of manual check)
+        this.physics.add.overlap(this.bullets, this.enemies, (b, e) => {
+            if (e instanceof BossBase) {
+                (e as BossBase).takeDamage(1);
+            } else {
+                (e as Enemy).takeDamage(1);
+            }
+            (b as Phaser.Physics.Arcade.Sprite).disableBody(true, true);
+        });
+
         // Boss trigger zone
-        this.physics.add.overlap(this.player, this.add.zone(3000, 300, 100, 600), () => {
+        this.physics.add.overlap(this.player, this.add.zone(this.levelData.worldWidth - 200, 300, 100, 600), () => {
             this.triggerBoss();
         }, undefined, this);
 
-        this.add.text(10, 10, 'NEOCONTRA: SOLANA ASSAULT', {
+        this.updateAesthetics();
+    }
+
+    private updateAesthetics() {
+        this.cameras.main.setBackgroundColor(this.levelData.backgroundColor);
+        this.add.text(10, 10, `NEOCONTRA: ${this.levelData.name.toUpperCase()}`, {
             fontFamily: '"Press Start 2P"',
             fontSize: '16px',
             color: '#00ff00'
-        });
+        }).setScrollFactor(0);
     }
 
     private handlePlayerHit() {
@@ -206,18 +222,16 @@ export class GameScene extends Phaser.Scene {
 
         sounds.playSFX('laser_fire');
 
-        // Interaction with Boss
-        if (this.boss && Phaser.Geom.Intersects.RectangleToRectangle(this.boss.getBounds(), new Phaser.Geom.Rectangle(this.player.x + offsetX, this.player.y + offsetY, 8, 8))) {
-            this.boss.takeDamage(1);
-        }
+        // Note: Boss damage is now handled by physics overlap in create()
 
         // Placeholder score increment
         this.updateScore(10);
     }
 
     private spawnEnemies() {
-        for (let i = 0; i < 5 + this.difficulty; i++) {
-            const x = Phaser.Math.Between(500, 2800);
+        const count = Math.floor(5 * this.levelData.difficultyMod);
+        for (let i = 0; i < count; i++) {
+            const x = Phaser.Math.Between(500, this.levelData.worldWidth - 400);
             this.enemies.add(new Enemy(this, x, 300));
         }
     }
@@ -225,22 +239,57 @@ export class GameScene extends Phaser.Scene {
     private triggerBoss() {
         if (this.boss) return;
 
-        this.boss = new Boss(this, 3100, 300);
+        switch (this.levelData.id) {
+            case 2: this.boss = new FlashLoanFalcon(this, this.levelData.worldWidth - 100, 350); break;
+            case 3: this.boss = new RugPullReaper(this, this.levelData.worldWidth - 100, 350); break;
+            case 4: this.boss = new HashRateHydra(this, this.levelData.worldWidth - 100, 350); break;
+            case 5: this.boss = new SatoshiSentinel(this, this.levelData.worldWidth - 100, 350); break;
+            default: this.boss = new DeFiDestroyer(this, this.levelData.worldWidth - 100, 350);
+        }
+
+        this.enemies.add(this.boss);
         this.cameras.main.flash(500, 255, 0, 0);
 
         sounds.playBGM('boss_theme');
-        console.log('BOSS ALERT: DEFIDESTROYER PRIME DETECTED');
+        console.log(`BOSS ALERT: ${this.levelData.bossType.toUpperCase()} DETECTED`);
+    }
+
+    private generatePlatforms() {
+        this.platforms.clear(true, true);
+
+        // Dynamic Ground based on world width
+        const groundUnits = Math.ceil(this.levelData.worldWidth / 32);
+        for (let i = 0; i < groundUnits; i++) {
+            this.platforms.create(i * 32, 580, 'platform').setTint(this.levelData.platformColor);
+        }
+
+        // Procedural obstacles based on level ID (aesthetic variations)
+        const platformCount = 10 + (this.levelData.id * 5);
+        for (let i = 0; i < platformCount; i++) {
+            const x = Phaser.Math.Between(500, this.levelData.worldWidth - 500);
+            const y = Phaser.Math.Between(200, 450);
+            const scaleX = Phaser.Math.Between(2, 6);
+            this.platforms.create(x, y, 'platform').setScale(scaleX, 1).setTint(this.levelData.platformColor).refreshBody();
+        }
     }
 
     public nextLevel() {
-        this.difficulty++;
+        this.currentLevelIndex = (this.currentLevelIndex + 1) % LEVELS.length;
+        this.levelData = LEVELS[this.currentLevelIndex];
+
+        // Clear current entities
+        this.enemies.clear(true, true);
+        this.bullets.clear(true, true);
         this.boss?.destroy();
         this.boss = undefined;
+
         this.player.setPosition(100, 500);
+        this.generatePlatforms(); // Important: Regen platforms for new level
         this.cameras.main.flash(1000, 0, 255, 0);
         this.spawnEnemies();
         this.updateScore(1000);
-        sounds.playBGM('neon_jungle');
+        this.updateAesthetics();
+        sounds.playBGM(this.levelData.bgm);
         sounds.playSFX('level_clear');
     }
 }
