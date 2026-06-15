@@ -65,6 +65,8 @@ deploy. Set these build-time vars, then redeploy:
 | `VITE_DEV_WALLET` | your treasury wallet (receives shop/continue SOL) |
 | `VITE_SOLANA_NETWORK` | `devnet` for testing, `mainnet-beta` for launch |
 | `VITE_RPC_URL` | a dedicated RPC (Helius/QuickNode); falls back to the public cluster |
+| `VITE_TOKEN_CA` | pump.fun token contract address — paste **after launch**; shows a copyable CA bar (blank = hidden) |
+| `VITE_TOKEN_SYMBOL` | ticker shown beside the CA (e.g. `$NEO`); defaults to `$TOKEN` |
 
 Prices (in SOL) live in `src/config/constants.ts` (`PRICES`). Leave
 `VITE_DEV_WALLET` blank to run in **DEV mode** (shop + continue are free, no

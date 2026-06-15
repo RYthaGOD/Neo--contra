@@ -6,6 +6,7 @@ import { HUD } from './ui/components/HUD';
 import { ShopUI } from './ui/components/ShopUI';
 import { LeaderboardUI } from './ui/components/LeaderboardUI';
 import { MobileControls } from './ui/components/MobileControls';
+import { TokenBar } from './ui/components/TokenBar';
 
 // Scales all React overlays (HUD/shop/leaderboard/mobile) from the game's native
 // 800x600 design space up to the on-screen canvas size, so the UI stays pixel-
@@ -55,6 +56,9 @@ function AppContent() {
                     <MobileControls />
                 </OverlayScaler>
             </div>
+
+            {/* Token contract-address bar — shows only once VITE_TOKEN_CA is set */}
+            <TokenBar />
         </div>
     );
 }

@@ -7,6 +7,14 @@ export const DEV_WALLET = import.meta.env.VITE_DEV_WALLET;
 // Currency shown throughout the UI. All prices are in native SOL.
 export const CURRENCY = 'SOL';
 
+// ─── $TOKEN (pump.fun) ──────────────────────────────────────────────────────
+// Paste the token's contract address (SPL mint) here AFTER launch. While blank,
+// nothing is shown; once set, a copyable "CA" bar appears in the UI. Display
+// only for now — no payment/utility is wired to the token yet.
+export const TOKEN_CA = (import.meta.env.VITE_TOKEN_CA ?? '').trim();
+// Ticker label shown next to the CA (e.g. "$NEO"). Falls back to "$TOKEN".
+export const TOKEN_SYMBOL = (import.meta.env.VITE_TOKEN_SYMBOL ?? '$TOKEN').trim();
+
 // Shop / continue prices, in SOL.
 export const PRICES = {
     EXTRA_LIFE: 0.01,
