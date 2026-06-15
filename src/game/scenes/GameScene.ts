@@ -29,8 +29,8 @@ export class GameScene extends Phaser.Scene {
     private facing = 1;          // 1=right, -1=left
     private aimDirX = 1;
     private aimDirY = 0;
-    private invulnFrames = 0;
-    private invulnerable = false; // barrier powerup
+    private invulnUntil = 0;       // ms timestamp; player is immune while time.now < this
+    private invulnerable = false;  // barrier power-up (separate, timed shield)
     private lastFire = 0;
     private jumpsUsed = 0;      // for double jump (resets on landing)
     private wasOnGround = true; // for landing-dust detection
@@ -432,7 +432,6 @@ export class GameScene extends Phaser.Scene {
         this.updatePlayer(time);
         this.updateBoss(time);
         this.updateScrollSpawns();
-        this.updateInvuln();
         this.cullBullets();
         this.updateBackground();
         this.updateHazards(time);
@@ -798,7 +797,7 @@ export class GameScene extends Phaser.Scene {
     // ─── Player Hit / Lives ───────────────────────────────────────────────────
 
     private handlePlayerHit() {
-        if (this.invulnFrames > 0 || this.invulnerable) return;
+        if (this.playerDead || this.invulnerable || this.time.now < this.invulnUntil) return;
 
         // Decrement local counter first (synchronous — no React roundtrip)
         this.lives = Math.max(0, this.lives - 1);
@@ -817,28 +816,27 @@ export class GameScene extends Phaser.Scene {
         if (this.weapon !== 'NORMAL') this.collectWeapon('NORMAL');
         this.weaponLevel = 1;
 
-        // Invulnerability frames (~3 s at 60 fps)
-        this.invulnFrames = 180;
+        // Brief mercy invulnerability — TIME-based (not frame-counted) so it lasts
+        // the same 1.2 s on a 60 Hz or 144 Hz display. The old frame-counted value
+        // (180) was ~3 s at 60 Hz, long enough that the player seemed to take no
+        // damage at all between hits.
+        this.invulnUntil = this.time.now + 1200;
         this.player.setTint(0xff4444);
-        this.time.delayedCall(600, () => {
+        this.time.delayedCall(400, () => {
             if (this.player.active) this.player.clearTint();
         });
+        // Blink for the duration of the i-frames (≈1.2 s: 100 ms × 2 × (5+1)).
         this.tweens.add({
-            targets: this.player, alpha: 0.3, duration: 120,
-            yoyo: true, repeat: 12,
+            targets: this.player, alpha: 0.3, duration: 100,
+            yoyo: true, repeat: 5,
             onComplete: () => { if (this.player.active) this.player.setAlpha(1); },
         });
-    }
-
-    private updateInvuln() {
-        if (this.invulnFrames > 0) this.invulnFrames--;
     }
 
     // Classic Contra death: launch the soldier up, spin, fade, then game over.
     private playerDeathSequence() {
         if (this.playerDead) return;
-        this.playerDead = true;
-        this.invulnFrames = 99999;
+        this.playerDead = true; // handlePlayerHit() bails on this — blocks further hits
         const body = this.player.body as Phaser.Physics.Arcade.Body;
         body.setVelocity(Phaser.Math.Between(-60, 60), -280);
         body.setAllowGravity(true);
@@ -865,9 +863,9 @@ export class GameScene extends Phaser.Scene {
         body.setAllowGravity(true);
         body.setVelocity(0, 0);
         this.player.setActive(true).setVisible(true).setAlpha(1).setAngle(0).clearTint();
-        // brief mercy invulnerability after reviving
-        this.invulnFrames = 180;
-        this.tweens.add({ targets: this.player, alpha: 0.35, duration: 120, yoyo: true, repeat: 8,
+        // brief mercy invulnerability after reviving (time-based, ~1.5 s)
+        this.invulnUntil = this.time.now + 1500;
+        this.tweens.add({ targets: this.player, alpha: 0.35, duration: 120, yoyo: true, repeat: 6,
             onComplete: () => { if (this.player.active) this.player.setAlpha(1); } });
         this.cameras.main.flash(200, 80, 255, 120);
         sounds.playSFX('powerup');
