@@ -932,7 +932,7 @@ export class GameScene extends Phaser.Scene {
 
         this.cameras.main.flash(600, 255, 0, 0);
         this.cameras.main.shake(400, 0.006);
-        this.bossWarning();
+        this.bossReveal(this.levelData.id, this.boss.bossName);
         sounds.playBGM('boss_theme');
     }
 
@@ -1077,6 +1077,45 @@ export class GameScene extends Phaser.Scene {
     }
 
     /** Dramatic centered boss warning. */
+    /** Dramatic boss intro card: portrait + name on a dark veil. The boss art is
+     *  on a black background, so it blends seamlessly into the veil. Falls back to
+     *  the plain WARNING flash when no `bg_boss<id>` artwork is present. */
+    private bossReveal(bossId: number, name: string) {
+        const key = 'bg_boss' + bossId;
+        if (!this.textures.exists(key)) { this.bossWarning(); return; }
+
+        const W = this.scale.width, H = this.scale.height;
+        const cx = W / 2, cy = H / 2;
+        const D = 60;
+
+        const veil = this.add.rectangle(cx, cy, W, H, 0x000000).setScrollFactor(0).setDepth(D).setAlpha(0);
+        const img = this.add.image(cx, cy - 12, key).setScrollFactor(0).setDepth(D + 1).setAlpha(0);
+        const src = this.textures.get(key).getSourceImage() as { width: number; height: number };
+        const fit = (H * 0.64) / src.height;
+        img.setScale(fit * 0.85);
+        const half = (src.height * fit) / 2;
+
+        const warn = this.add.text(cx, cy - half - 10, '⚠  WARNING  ⚠', {
+            fontFamily: '"Press Start 2P", monospace', fontSize: '12px',
+            color: '#ffcc33', stroke: '#000000', strokeThickness: 5,
+        }).setOrigin(0.5).setScrollFactor(0).setDepth(D + 2).setAlpha(0);
+        const nameT = this.add.text(cx, cy + half + 4, name.toUpperCase(), {
+            fontFamily: '"Press Start 2P", monospace', fontSize: '16px',
+            color: '#ff3b56', stroke: '#000000', strokeThickness: 6,
+        }).setOrigin(0.5).setScrollFactor(0).setDepth(D + 2).setAlpha(0);
+
+        const all = [veil, img, warn, nameT];
+        this.tweens.add({ targets: veil, alpha: 0.82, duration: 260 });
+        this.tweens.add({ targets: img, alpha: 1, scaleX: fit, scaleY: fit, duration: 480, ease: 'Back.easeOut' });
+        this.tweens.add({ targets: [warn, nameT], alpha: 1, duration: 300, delay: 200 });
+        this.time.delayedCall(1700, () => {
+            this.tweens.add({
+                targets: all, alpha: 0, duration: 380,
+                onComplete: () => all.forEach(o => o.destroy()),
+            });
+        });
+    }
+
     private bossWarning() {
         const cx = this.scale.width / 2, cy = this.scale.height / 2;
         const t = this.add.text(cx, cy, '⚠  WARNING  ⚠', {
