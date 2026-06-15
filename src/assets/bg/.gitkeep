@@ -1,0 +1,3 @@
+# Drop AI backdrops here (see docs/ASSET_PROMPTS.md).
+# level1..level5, title, boss1..boss5  (.png/.jpg/.webp)
+# Auto-detected via import.meta.glob — missing files fall back to procedural art.

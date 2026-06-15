@@ -3,85 +3,127 @@ import Phaser from 'phaser';
 export abstract class BossBase extends Phaser.Physics.Arcade.Sprite {
     protected health: number;
     protected maxHealth: number;
-    protected stateTimer: number = 0;
+    protected stateTimer = 0;
+    public readonly bossName: string;
 
-    constructor(scene: Phaser.Scene, x: number, y: number, texture: string, health: number) {
-        super(scene, x, y, texture);
+    private barBg!: Phaser.GameObjects.Rectangle;
+    private barFill!: Phaser.GameObjects.Rectangle;
+    private nameText!: Phaser.GameObjects.Text;
+    private dead = false;
+
+    constructor(scene: Phaser.Scene, x: number, y: number, health: number, name: string) {
+        super(scene, x, y, 'boss_core');
         this.health = health;
         this.maxHealth = health;
+        this.bossName = name;
         scene.add.existing(this);
         scene.physics.add.existing(this);
-        this.setCollideWorldBounds(true);
+        this.setCollideWorldBounds(false);
         this.setImmovable(true);
         (this.body as Phaser.Physics.Arcade.Body).setAllowGravity(false);
+        this.createHud();
+    }
+
+    private createHud() {
+        const cam = this.scene.cameras.main;
+        const w = cam.width;
+        this.nameText = this.scene.add.text(w / 2, 56, this.bossName.toUpperCase(), {
+            fontFamily: '"Press Start 2P", monospace', fontSize: '10px', color: '#ff4466',
+        }).setOrigin(0.5).setScrollFactor(0).setDepth(50);
+        this.barBg = this.scene.add.rectangle(w / 2, 74, 300, 12, 0x330011).setScrollFactor(0).setDepth(50).setStrokeStyle(2, 0xff4466);
+        this.barFill = this.scene.add.rectangle(w / 2 - 148, 74, 296, 8, 0xff2244).setOrigin(0, 0.5).setScrollFactor(0).setDepth(51);
+    }
+
+    private refreshHud() {
+        const pct = Phaser.Math.Clamp(this.health / this.maxHealth, 0, 1);
+        this.barFill.width = 296 * pct;
     }
 
     public abstract updateAI(): void;
 
+    protected fire(angle: number, speed = 300) {
+        (this.scene as any).enemyBullets?.fireEnemy(this.x, this.y, angle, speed);
+    }
+
+    protected fireAtPlayer(spread: number[] = [0], speed = 300) {
+        const player = (this.scene as any).player;
+        if (!player) return;
+        const base = Phaser.Math.Angle.Between(this.x, this.y, player.x, player.y);
+        spread.forEach(off => this.fire(base + off, speed));
+    }
+
     update() {
-        if (!this.active) return;
+        if (!this.active || this.dead) return;
         this.stateTimer++;
         this.updateAI();
+        this.refreshHud();
     }
 
     public takeDamage(amount: number) {
+        if (this.dead) return;
         this.health -= amount;
-        this.scene.cameras.main.shake(100, 0.01);
-        this.setTint(0xff0000);
-        this.scene.time.delayedCall(100, () => this.clearTint());
-
-        if (this.health <= 0) {
-            this.explode();
-        }
+        this.scene.cameras.main.shake(80, 0.006);
+        this.setTintFill(0xffffff);
+        this.scene.time.delayedCall(60, () => { if (this.active) this.clearTint(); });
+        if (this.health <= 0) this.explode();
+        else this.refreshHud();
     }
 
     protected explode() {
+        if (this.dead) return;
+        this.dead = true;
         const scene = this.scene as any;
-        const difficulty = scene.levelData?.difficultyMod || 1;
-        scene.registry.get('react_updateScore')?.(5000 * difficulty);
-        if (window.navigator?.vibrate) window.navigator.vibrate([100, 50, 300]);
-        if (scene.nextLevel) scene.nextLevel();
-        this.destroy();
+        scene.sfx?.('boss_explode');
+        scene.floatScore?.(this.x, this.y - 40, 5000);
+        scene.cameras?.main?.shake(420, 0.012);
+        // Cluster of explosions
+        for (let i = 0; i < 8; i++) {
+            this.scene.time.delayedCall(i * 70, () => {
+                scene.spawnExplosion?.(this.x + Phaser.Math.Between(-40, 40), this.y + Phaser.Math.Between(-40, 40), 0xffaa00);
+            });
+        }
+        this.barBg.destroy();
+        this.barFill.destroy();
+        this.nameText.destroy();
+        this.scene.time.delayedCall(700, () => {
+            scene.onBossDefeated?.();
+            this.destroy();
+        });
+        this.setActive(false);
+        this.setVisible(false);
     }
 }
 
 export class DeFiDestroyer extends BossBase {
     constructor(scene: Phaser.Scene, x: number, y: number) {
-        super(scene, x, y, 'enemy_placeholder', 20);
-        this.setScale(3).setTint(0xff00ff);
+        super(scene, x, y, 26, 'DeFi Destroyer Prime');
+        this.setScale(2.4).setTint(0xff00ff);
     }
-
     updateAI() {
-        this.y = 300 + Math.sin(this.stateTimer * 0.05) * 150;
-        if (this.stateTimer % 60 === 0) this.fire();
-    }
-
-    private fire() {
-        const player = (this.scene as any).player;
-        const angle = Phaser.Math.Angle.Between(this.x, this.y, player.x, player.y);
-        (this.scene as any).bullets.fireBullet(this.x, this.y, angle);
+        this.y = 300 + Math.sin(this.stateTimer * 0.04) * 150;
+        if (this.stateTimer % 55 === 0) this.fireAtPlayer([0]);
+        if (this.stateTimer % 160 === 0) this.fireAtPlayer([-0.25, 0, 0.25]);
     }
 }
 
 export class FlashLoanFalcon extends BossBase {
     private diveState: 'hover' | 'dive' | 'return' = 'hover';
-
     constructor(scene: Phaser.Scene, x: number, y: number) {
-        super(scene, x, y, 'enemy_placeholder', 30);
-        this.setScale(2.5).setTint(0xffff00);
+        super(scene, x, y, 34, 'Flash Loan Falcon');
+        this.setScale(2.2).setTint(0xffff00);
     }
-
     updateAI() {
         const player = (this.scene as any).player;
         if (this.diveState === 'hover') {
-            this.x = player.x;
-            this.y = 100 + Math.sin(this.stateTimer * 0.1) * 50;
-            if (this.stateTimer % 180 === 0) this.diveState = 'dive';
+            this.x = Phaser.Math.Linear(this.x, player.x, 0.04);
+            this.y = 130 + Math.sin(this.stateTimer * 0.1) * 40;
+            if (this.stateTimer % 50 === 0) this.fireAtPlayer([0], 320);
+            if (this.stateTimer % 150 === 0) this.diveState = 'dive';
         } else if (this.diveState === 'dive') {
-            this.scene.physics.moveTo(this, this.x, 600, 400);
-            if (this.y > 500) this.diveState = 'return';
+            this.y += 14;
+            if (this.y > 470) this.diveState = 'return';
         } else {
-            this.scene.physics.moveTo(this, this.x, 100, 200);
+            this.y -= 8;
             if (this.y < 150) this.diveState = 'hover';
         }
     }
@@ -89,52 +131,52 @@ export class FlashLoanFalcon extends BossBase {
 
 export class RugPullReaper extends BossBase {
     constructor(scene: Phaser.Scene, x: number, y: number) {
-        super(scene, x, y, 'enemy_placeholder', 40);
-        this.setScale(4).setTint(0x00ff00);
+        super(scene, x, y, 46, 'Rug Pull Reaper');
+        this.setScale(3).setTint(0x00ff66);
     }
-
     updateAI() {
-        if (this.stateTimer % 120 === 0) {
-            this.x = Phaser.Math.Between(500, (this.scene as any).levelData.worldWidth - 500);
-            this.y = Phaser.Math.Between(100, 500);
-            this.scene.cameras.main.flash(200, 0, 255, 0);
+        if (this.stateTimer % 110 === 0) {
+            const view = this.scene.cameras.main.worldView;
+            this.x = Phaser.Math.Between(view.x + 200, view.right - 100);
+            this.y = Phaser.Math.Between(140, 460);
+            this.scene.cameras.main.flash(150, 0, 255, 80);
+            // Radial burst on teleport
+            for (let i = 0; i < 6; i++) this.fire((Math.PI * 2 / 6) * i, 240);
         }
+        if (this.stateTimer % 40 === 0) this.fireAtPlayer([0], 300);
     }
 }
 
 export class HashRateHydra extends BossBase {
     constructor(scene: Phaser.Scene, x: number, y: number) {
-        super(scene, x, y, 'enemy_placeholder', 60);
-        this.setScale(5).setTint(0xff0000);
+        super(scene, x, y, 60, 'Hash Rate Hydra');
+        this.setScale(3.4).setTint(0xff3333);
     }
-
     updateAI() {
-        // Multi-directional fire
+        const view = this.scene.cameras.main.worldView;
+        this.x = view.right - 160 + Math.cos(this.stateTimer * 0.02) * 120;
+        this.y = 300 + Math.sin(this.stateTimer * 0.03) * 120;
         if (this.stateTimer % 45 === 0) {
-            for (let i = 0; i < 8; i++) {
-                const angle = (Math.PI * 2 / 8) * i;
-                (this.scene as any).bullets.fireBullet(this.x, this.y, angle);
-            }
+            const o = (this.stateTimer % 90 === 0) ? 0 : Math.PI / 8;
+            for (let i = 0; i < 8; i++) this.fire((Math.PI * 2 / 8) * i + o, 230);
         }
-        this.x = (this.scene as any).levelData.worldWidth - 500 + Math.cos(this.stateTimer * 0.02) * 200;
     }
 }
 
 export class SatoshiSentinel extends BossBase {
     constructor(scene: Phaser.Scene, x: number, y: number) {
-        super(scene, x, y, 'enemy_placeholder', 100);
-        this.setScale(6).setTint(0xffffff);
+        super(scene, x, y, 90, 'Satoshi Sentinel');
+        this.setScale(4).setTint(0xffffff);
     }
-
     updateAI() {
         const player = (this.scene as any).player;
-        if (this.stateTimer % 90 === 0) {
-            // Triple fire towards player
-            const baseAngle = Phaser.Math.Angle.Between(this.x, this.y, player.x, player.y);
-            [-0.2, 0, 0.2].forEach(off => {
-                (this.scene as any).bullets.fireBullet(this.x, this.y, baseAngle + off);
-            });
+        const view = this.scene.cameras.main.worldView;
+        this.x = Phaser.Math.Linear(this.x, view.x + view.width * 0.7, 0.02);
+        this.y = 280 + Math.sin(this.stateTimer * 0.04) * 140;
+        if (this.stateTimer % 70 === 0) this.fireAtPlayer([-0.3, -0.15, 0, 0.15, 0.3], 320);
+        if (this.stateTimer % 120 === 0) {
+            for (let i = 0; i < 10; i++) this.fire((Math.PI * 2 / 10) * i, 220);
         }
-        this.scene.physics.moveToObject(this, player, 50);
+        void player;
     }
 }

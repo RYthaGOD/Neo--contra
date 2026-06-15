@@ -9,6 +9,11 @@
   color: #00ff00;
 }
 
+html, body, #root {
+  height: 100%;
+  width: 100%;
+}
+
 body {
   margin: 0;
   overflow: hidden;
@@ -131,14 +136,18 @@ body {
   }
 }
 
+/* Largest 4:3 box that fits the viewport — the game fills the page, keeping its
+   aspect ratio (Phaser FIT scales the 800x600 canvas up to fill this). */
 #game-container {
-  width: 800px;
-  height: 600px;
+  width: min(100vw, 133.333vh);
+  height: min(75vw, 100vh);
   cursor: crosshair;
 }
 
 canvas {
   display: block;
+  image-rendering: pixelated;        /* keep the pixel art crisp when scaled up */
+  image-rendering: crisp-edges;
 }
 
 /* Custom scrollbar for retro feel */

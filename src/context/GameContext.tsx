@@ -1,52 +1,60 @@
-import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { WeaponType } from '../config/constants';
 
 interface GameState {
     lives: number;
     score: number;
     weapon: WeaponType;
+    weaponLevel: number;
     isShopOpen: boolean;
     isGameOver: boolean;
+    won: boolean;
+    level: number;
 }
 
 interface GameContextType {
     state: GameState;
-    updateScore: (val: number) => void;
-    updateLives: (val: number) => void;
-    setWeapon: (val: WeaponType) => void;
+    updateScore: (delta: number) => void;
+    updateLives: (delta: number) => void;
+    setWeapon: (val: WeaponType, level?: number) => void;
     toggleShop: (open: boolean) => void;
     setGameOver: (over: boolean) => void;
+    setVictory: (won: boolean) => void;
+    revive: () => void;
     resetGame: () => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
-export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [state, setState] = useState<GameState>({
-        lives: 3,
-        score: 0,
-        weapon: 'NORMAL',
-        isShopOpen: false,
-        isGameOver: false,
-    });
+const DEFAULT_STATE: GameState = {
+    lives: 3,
+    score: 0,
+    weapon: 'NORMAL',
+    weaponLevel: 1,
+    isShopOpen: false,
+    isGameOver: false,
+    won: false,
+    level: 1,
+};
 
-    const updateScore = useCallback((val: number) => {
-        setState(prev => ({ ...prev, score: prev.score + val }));
+export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const [state, setState] = useState<GameState>(DEFAULT_STATE);
+    const stateRef = useRef(state);
+    stateRef.current = state;
+
+    const updateScore = useCallback((delta: number) => {
+        setState(prev => ({ ...prev, score: prev.score + delta }));
     }, []);
 
-    const updateLives = useCallback((val: number) => {
+    const updateLives = useCallback((delta: number) => {
         setState(prev => {
-            const newLives = Math.max(0, prev.lives + val);
-            return {
-                ...prev,
-                lives: newLives,
-                isGameOver: newLives === 0
-            };
+            const newLives = Math.max(0, prev.lives + delta);
+            return { ...prev, lives: newLives, isGameOver: newLives === 0 };
         });
     }, []);
 
-    const setWeapon = useCallback((val: WeaponType) => {
-        setState(prev => ({ ...prev, weapon: val }));
+    const setWeapon = useCallback((val: WeaponType, level = 1) => {
+        setState(prev => ({ ...prev, weapon: val, weaponLevel: level }));
     }, []);
 
     const toggleShop = useCallback((open: boolean) => {
@@ -57,25 +65,37 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setState(prev => ({ ...prev, isGameOver: over }));
     }, []);
 
+    const setVictory = useCallback((won: boolean) => {
+        // A victory also opens the score screen, but flagged as a win so the UI
+        // reads "MISSION COMPLETE" rather than "GAME OVER".
+        setState(prev => ({ ...prev, won, isGameOver: true }));
+    }, []);
+
+    // Pay-to-continue: restore lives and clear game over, keeping the score.
+    const revive = useCallback(() => {
+        setState(prev => ({ ...prev, lives: 3, isGameOver: false, won: false }));
+    }, []);
+
     const resetGame = useCallback(() => {
-        setState({
-            lives: 3,
-            score: 0,
-            weapon: 'NORMAL',
-            isShopOpen: false,
-            isGameOver: false,
-        });
+        setState(DEFAULT_STATE);
+    }, []);
+
+    // Keep registry lives/score readable to Phaser without re-creating callbacks
+    useEffect(() => {
+        // Expose raw readable values into the global registry via a shared ref
+        // (Phaser reads these synchronously; React callbacks above mutate them).
+        (window as any).__neoContraState = stateRef;
     }, []);
 
     return (
-        <GameContext.Provider value={{ state, updateScore, updateLives, setWeapon, toggleShop, setGameOver, resetGame }}>
+        <GameContext.Provider value={{ state, updateScore, updateLives, setWeapon, toggleShop, setGameOver, setVictory, revive, resetGame }}>
             {children}
         </GameContext.Provider>
     );
 };
 
 export const useGame = () => {
-    const context = useContext(GameContext);
-    if (!context) throw new Error('useGame must be used within GameProvider');
-    return context;
+    const ctx = useContext(GameContext);
+    if (!ctx) throw new Error('useGame must be used within GameProvider');
+    return ctx;
 };

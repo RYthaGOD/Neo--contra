@@ -8,9 +8,19 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+node_modules.old*
+.e2e
 dist
 dist-ssr
 *.local
+
+# Local env (NEVER commit secrets/API keys); .env.example is the safe template
+.env
+.env.local
+.env.*.local
+
+# Server runtime data (SQLite leaderboard)
+data/
 
 # Editor directories and files
 .vscode/*

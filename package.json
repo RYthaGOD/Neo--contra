@@ -3,21 +3,27 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "start": "node --experimental-sqlite server/index.mjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
     "@solana-mobile/wallet-adapter-mobile": "^2.1.4",
     "@solana/spl-token": "^0.4.12",
+    "express": "^4.21.2",
     "@solana/wallet-adapter-base": "^0.9.23",
     "@solana/wallet-adapter-react": "^0.15.35",
     "@solana/wallet-adapter-react-ui": "^0.9.35",
     "@solana/wallet-adapter-wallets": "^0.19.32",
     "@solana/web3.js": "^1.98.0",
     "@supabase/supabase-js": "^2.49.1",
+    "buffer": "^6.0.3",
     "clsx": "^2.1.1",
     "howler": "^2.2.4",
     "lucide-react": "^0.477.0",

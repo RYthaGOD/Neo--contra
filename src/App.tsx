@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { SolanaProvider } from './context/SolanaProvider';
 import { GameProvider, useGame } from './context/GameContext';
 import GameView from './ui/components/GameView';
@@ -7,34 +7,66 @@ import { ShopUI } from './ui/components/ShopUI';
 import { LeaderboardUI } from './ui/components/LeaderboardUI';
 import { MobileControls } from './ui/components/MobileControls';
 
+// Scales all React overlays (HUD/shop/leaderboard/mobile) from the game's native
+// 800x600 design space up to the on-screen canvas size, so the UI stays pixel-
+// aligned with the game and grows with it on large/fullscreen displays.
+const DESIGN_W = 800, DESIGN_H = 600;
+const OverlayScaler: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const ref = useRef<HTMLDivElement>(null);
+    const [scale, setScale] = useState(1);
+    useEffect(() => {
+        const parent = ref.current?.parentElement;
+        if (!parent) return;
+        const update = () => setScale(parent.clientWidth / DESIGN_W);
+        update();
+        const ro = new ResizeObserver(update);
+        ro.observe(parent);
+        window.addEventListener('resize', update);
+        return () => { ro.disconnect(); window.removeEventListener('resize', update); };
+    }, []);
+    return (
+        <div ref={ref} className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-0 left-0 pointer-events-none"
+                style={{ width: DESIGN_W, height: DESIGN_H, transformOrigin: 'top left', transform: `scale(${scale})` }}>
+                {children}
+            </div>
+        </div>
+    );
+};
+
 function AppContent() {
-  const { state } = useGame();
+    const { state } = useGame();
 
-  return (
-    <div className="min-h-screen bg-black text-neon-green font-retro overflow-hidden flex flex-col items-center justify-center p-4">
-      <div id="game-container" className="relative border-4 border-neon-purple shadow-[0_0_30px_rgba(188,19,254,0.4)] aspect-[4/3] w-full max-w-[800px] crt">
-        <GameView />
-        <HUD />
-        {state.isShopOpen && <ShopUI />}
-        {state.isGameOver && <LeaderboardUI />}
-        <MobileControls />
-      </div>
+    return (
+        <div className="w-screen h-screen bg-black overflow-hidden flex items-center justify-center">
+            {/* CRT-framed game, sized to fill the viewport at 4:3 (see index.css) */}
+            <div
+                id="game-container"
+                className="relative border-2 border-neon-purple shadow-[0_0_40px_rgba(188,19,254,0.4)] crt"
+            >
+                {/* Phaser canvas mounts here */}
+                <GameView />
 
-      <div className="mt-4 text-[10px] text-neon-blue opacity-50 uppercase tracking-tighter">
-        NeoContra: Solana Assault // Protocol v0.1.0
-      </div>
-    </div>
-  );
+                {/* React overlay layers — scaled to match the game canvas */}
+                <OverlayScaler>
+                    <HUD />
+                    {state.isShopOpen && <ShopUI />}
+                    {state.isGameOver && <LeaderboardUI />}
+                    <MobileControls />
+                </OverlayScaler>
+            </div>
+        </div>
+    );
 }
 
 function App() {
-  return (
-    <SolanaProvider>
-      <GameProvider>
-        <AppContent />
-      </GameProvider>
-    </SolanaProvider>
-  );
+    return (
+        <SolanaProvider>
+            <GameProvider>
+                <AppContent />
+            </GameProvider>
+        </SolanaProvider>
+    );
 }
 
 export default App;

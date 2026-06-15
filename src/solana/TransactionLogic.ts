@@ -2,17 +2,14 @@ import {
     Connection,
     PublicKey,
     Transaction,
+    SystemProgram,
+    ComputeBudgetProgram,
+    LAMPORTS_PER_SOL,
 } from '@solana/web3.js';
-import {
-    createTransferInstruction,
-    getAssociatedTokenAddressSync,
-    createAssociatedTokenAccountInstruction,
-    getAccount,
-} from '@solana/spl-token';
-import { SKR_MINT } from '../config/constants';
 
 /**
- * Executes a purchase using SKR tokens.
+ * Executes a purchase by transferring native SOL from the player's wallet to the
+ * treasury (DEV_WALLET). `amount` is in SOL.
  */
 export const buyItem = async (
     connection: Connection,
@@ -22,54 +19,31 @@ export const buyItem = async (
 ) => {
     if (!wallet.publicKey || !wallet.signTransaction) throw new Error('Wallet not connected');
 
-    const mintPubKey = new PublicKey(SKR_MINT);
     const destinationPubKey = new PublicKey(devWallet);
+    const lamports = Math.round(amount * LAMPORTS_PER_SOL);
 
-    const fromAta = getAssociatedTokenAddressSync(mintPubKey, wallet.publicKey);
-    const toAta = getAssociatedTokenAddressSync(mintPubKey, destinationPubKey);
+    // Guard against an underfunded wallet (leave headroom for the network fee).
+    const balance = await connection.getBalance(wallet.publicKey);
+    if (balance < lamports + 5000) throw new Error('Insufficient SOL balance');
 
     const transaction = new Transaction();
-
-    // Create destination ATA if it doesn't exist
-    try {
-        await getAccount(connection, toAta);
-    } catch (e) {
-        transaction.add(
-            createAssociatedTokenAccountInstruction(
-                wallet.publicKey,
-                toAta,
-                destinationPubKey,
-                mintPubKey
-            )
-        );
-    }
-
-    // Handle SKR transfer (assuming 9 decimals)
-    const amountWithDecimals = BigInt(Math.floor(amount * 1_000_000_000));
-
+    // Priority fee so the tx lands during mainnet congestion.
+    transaction.add(ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 50_000 }));
     transaction.add(
-        createTransferInstruction(
-            fromAta,
-            toAta,
-            wallet.publicKey,
-            amountWithDecimals
-        )
+        SystemProgram.transfer({
+            fromPubkey: wallet.publicKey,
+            toPubkey: destinationPubKey,
+            lamports,
+        })
     );
 
-    const { blockhash } = await connection.getLatestBlockhash();
+    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
     transaction.recentBlockhash = blockhash;
     transaction.feePayer = wallet.publicKey;
 
     const signed = await wallet.signTransaction(transaction);
     const signature = await connection.sendRawTransaction(signed.serialize());
-
-    // Wait for confirmation to ensure state syncs
-    const latestBlockhash = await connection.getLatestBlockhash();
-    await connection.confirmTransaction({
-        signature,
-        blockhash: latestBlockhash.blockhash,
-        lastValidBlockHeight: latestBlockhash.lastValidBlockHeight
-    });
+    await connection.confirmTransaction({ signature, blockhash, lastValidBlockHeight });
 
     return signature;
 };

@@ -4,6 +4,17 @@ import { useGame } from '../../context/GameContext';
 export const MobileControls: React.FC = () => {
     const { state } = useGame();
     const [touchData, setTouchData] = useState({ x: 0, y: 0, active: false });
+    const [isTouch, setIsTouch] = useState(false);
+
+    // Only show the on-screen joystick/buttons on touch devices. On desktop the
+    // keyboard is used and these big controls would just cover the game.
+    useEffect(() => {
+        const mq = window.matchMedia('(pointer: coarse)');
+        const update = () => setIsTouch(mq.matches);
+        update();
+        mq.addEventListener?.('change', update);
+        return () => mq.removeEventListener?.('change', update);
+    }, []);
 
     const handlePointerMove = (e: React.PointerEvent) => {
         if (!touchData.active) return;
@@ -21,7 +32,7 @@ export const MobileControls: React.FC = () => {
         window.dispatchEvent(new CustomEvent('game_move', { detail: { x: dirX, y: dirY } }));
     };
 
-    if (state.isShopOpen) return null;
+    if (!isTouch || state.isShopOpen) return null;
 
     return (
         <div className="absolute inset-0 pointer-events-none select-none z-20">

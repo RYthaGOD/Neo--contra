@@ -18,8 +18,12 @@ export const SolanaProvider: FC<Props> = ({ children }) => {
     // The network can be set to 'devnet', 'testnet', or 'mainnet-beta'.
     const network = (import.meta.env.VITE_SOLANA_NETWORK as WalletAdapterNetwork) || WalletAdapterNetwork.Devnet;
 
-    // You can also provide a custom RPC endpoint.
-    const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+    // Prefer a dedicated RPC (Helius/QuickNode) for mainnet — clusterApiUrl is
+    // public and rate-limited. Set VITE_RPC_URL in production.
+    const endpoint = useMemo(
+        () => (import.meta.env.VITE_RPC_URL as string) || clusterApiUrl(network),
+        [network],
+    );
 
     const wallets = useMemo(
         () => [

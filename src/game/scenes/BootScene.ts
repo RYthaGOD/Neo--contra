@@ -1,4 +1,7 @@
 import Phaser from 'phaser';
+import { TextureFactory } from '../TextureFactory';
+import { BackgroundFactory } from '../BackgroundFactory';
+import { BG_URLS } from '../backgrounds';
 
 export class BootScene extends Phaser.Scene {
     constructor() {
@@ -6,31 +9,18 @@ export class BootScene extends Phaser.Scene {
     }
 
     preload() {
-        // Load local assets or placeholders
-        this.load.image('player', 'https://raw.githubusercontent.com/photonstorm/phaser3-examples/master/public/assets/sprites/bezel.png');
-        this.load.image('bullet', 'https://raw.githubusercontent.com/photonstorm/phaser3-examples/master/public/assets/sprites/bullets/bullet7.png');
-        this.createPlaceholders();
+        // Load any AI backdrops that exist in src/assets/bg/ (auto-detected).
+        // Missing art simply isn't here, so there are no failed requests.
+        for (const key in BG_URLS) {
+            if (!this.textures.exists(key)) this.load.image(key, BG_URLS[key]);
+        }
+        this.load.on('loaderror', () => { /* tolerate any odd asset, fall back */ });
     }
 
-    createPlaceholders() {
-        // Create a 32x32 green square as a placeholder for the player if the URL fails
-        const graphics = this.make.graphics({ x: 0, y: 0 });
-        graphics.fillStyle(0x00ff00);
-        graphics.fillRect(0, 0, 32, 64);
-        graphics.generateTexture('player_placeholder', 32, 64);
-
-        graphics.clear();
-        graphics.fillStyle(0xff0000);
-        graphics.fillRect(0, 0, 8, 8);
-        graphics.generateTexture('bullet_placeholder', 8, 8);
-
-        graphics.clear();
-        graphics.fillStyle(0xff00ff); // Neon Purple for enemies
-        graphics.fillRect(0, 0, 32, 48);
-        graphics.generateTexture('enemy_placeholder', 32, 48);
-    }
-
-    update() {
-        this.scene.start('GameScene');
+    create() {
+        // Core art is generated procedurally — no network/asset dependency.
+        TextureFactory.generate(this);
+        BackgroundFactory.generate(this);
+        this.scene.start('TitleScene');
     }
 }

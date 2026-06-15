@@ -2,65 +2,81 @@
 
 > "The mission is paramount. The blockchain is the battlefield." - Rykiri
 
-NeoContra: Solana Assault is a high-fidelity, retro-style run-and-gun shooter reimagined for the 2026 Solana Mobile ecosystem. Built with Phaser 3 and React, it features seamless on-chain integration, micro-transactions, and a polished "Industrial Futurism" aesthetic optimized for the Seeker and Saga devices.
+A retro run-and-gun shooter (Contra-style) with native-SOL payments. Built
+with **Phaser 3** + **React 18**, fully self-contained art/audio (procedurally
+generated — no external asset files), and a lightweight bundled leaderboard.
 
-## 🚀 Tactical Features
+## 🚀 Features
 
-- **Phaser 3 Core**: High-performance arcade physics with 8-way aiming and legacy Contra mechanics.
-- **Solana Mobile Integration**: Native support for Mobile Wallet Adapter (MWA) and SPL-token interactions.
-- **In-Game Armory**: A functional DeFi Shop where players can purchase power-ups and extra lives using SKR tokens.
-- **Global High Command**: Real-time leaderboards powered by Supabase for cross-device competition.
-- **Retro-Modern Visuals**: Authentic pixel-art assets enhanced with dynamic neon lighting and a custom CRT scanline shader.
-- **Haptic Immersion**: Physical feedback via device rumble for critical in-game events.
+- **Contra core**: 8-way aiming, prone, **double jump**, hold-to-fire, weapon
+  power-ups (M/S/L/F/B) with **upgrade-on-double-pickup**.
+- **5 authored levels**: each with scripted set-pieces — drone ambush, wall-cannon
+  gates, an **elite mini-boss**, a "hold the line" gauntlet, timed fire-jet
+  hazards, a double-jump climb to a weapon reward, and a unique end **boss**.
+- **Parallax world**: gradient sky, factory skyline with smokestacks, neon
+  billboards, foliage, and rain — themed per level.
+- **Solana payments (native SOL):**
+  - In-game **Armory** shop (spend SOL on weapons/lives).
+  - **Pay-to-continue** revive on game over (keeps your score).
+  - Connect Phantom/Solflare/Mobile wallet; purchases are plain SOL transfers to
+    your treasury wallet. No SPL token required.
+- **Global leaderboard**: bundled **Express + SQLite** API (no external DB
+  service required); persists to a Railway volume.
+- Procedural WebAudio SFX/music, screen shake, particles, CRT styling, PWA.
 
-## 🛠️ Technical Stack
+## 🛠️ Stack
 
-- **Engine**: Phaser 3.88.2
-- **Frontend**: React 18, Tailwind CSS, Lucide Icons
-- **Blockchain**: @solana/web3.js, @solana/wallet-adapter
-- **State**: React Context API
-- **Backend/DB**: Supabase
-- **Offline**: Vite PWA with Workbox strategies
+- **Engine**: Phaser 3.90 · **UI**: React 18 + Tailwind + Lucide
+- **Chain**: @solana/web3.js + @solana/wallet-adapter (Phantom / Solflare / Mobile)
+- **Server/DB**: Express + Node built-in `node:sqlite` (zero native deps)
+- **Build**: Vite + Vite PWA
 
-## 🔌 Getting Started
+## 🔌 Local development
 
-### 1. Environmental Setup
-Clone the repository and install dependencies:
 ```bash
-git clone https://github.com/RYthaGOD/Neo--contra.git
-cd neo-contra
 pnpm install
+cp .env.example .env      # fill in as needed (DEV mode works with blanks)
+pnpm dev                  # game at http://localhost:5173 (leaderboard offline)
 ```
 
-### 2. Configuration
-Create a `.env` file based on `.env.example`:
-```env
-VITE_DEV_WALLET=<your_wallet_address>
-VITE_SOLANA_NETWORK=devnet
-VITE_SUPABASE_URL=<your_supabase_url>
-VITE_SUPABASE_ANON_KEY=<your_supabase_anon_key>
-VITE_SKR_MINT=SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3
-```
+To run the full stack (game + leaderboard API) locally:
 
-### 3. Deployment
-Execute the production protocol:
 ```bash
 pnpm build
-pnpm preview
+pnpm start                # serves the built game + /api/scores on :3000
 ```
 
-## 🎮 Controls
+## ☁️ Deploy on Railway
 
-### Desktop
-- **Move**: Arrow Keys
-- **Jump**: Up Arrow
-- **Shoot**: Spacebar
-- **Shop**: ESC / [S] Button
+1. Create a new Railway project from this repo.
+2. Add a **Volume** mounted at `/data` (persists the SQLite leaderboard).
+3. Set service **Variables** from `.env.example` (at minimum `DATA_DIR=/data`;
+   add the `VITE_*` vars before launch — they're baked in at build time).
+4. Railway runs `pnpm install && pnpm run build` then `pnpm start` (see
+   `railway.json`). Node 22+ is required (for `node:sqlite`).
 
-### Mobile
-- **Movement**: Virtual Joystick (Left)
-- **Actions**: Discrete Jump/Fire Buttons (Right)
+## 🪙 Solana payment config
+
+Purchases are **native SOL transfers** to your treasury wallet — no token to
+deploy. Set these build-time vars, then redeploy:
+
+| Variable | Value |
+|---|---|
+| `VITE_DEV_WALLET` | your treasury wallet (receives shop/continue SOL) |
+| `VITE_SOLANA_NETWORK` | `devnet` for testing, `mainnet-beta` for launch |
+| `VITE_RPC_URL` | a dedicated RPC (Helius/QuickNode); falls back to the public cluster |
+
+Prices (in SOL) live in `src/config/constants.ts` (`PRICES`). Leave
+`VITE_DEV_WALLET` blank to run in **DEV mode** (shop + continue are free, no
+wallet required) — useful for demos and devnet testing.
+
+## 🎮 Controls (desktop)
+
+- **Move**: ← → / A D · **Jump (×2)**: ↑ / W · **Prone**: ↓ / S
+- **Fire**: Space / Z · **Aim**: hold ↑/↓ (8-way) · **Armory**: ESC · **Mute**: M
+
+Mobile shows an on-screen joystick + Jump/Fire buttons automatically (touch only).
 
 ---
 
-Developed by **Rykiri** // Powered by **Antigravity**
+Developed by **Rykiri**
