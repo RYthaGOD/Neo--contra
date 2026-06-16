@@ -251,6 +251,11 @@ export class GameScene extends Phaser.Scene {
         // Spawn initial enemies
         this.spawnEnemyWave(400, 1200);
 
+        // Brief spawn-in grace so the player isn't hit before they can react.
+        // Deferred one tick: this.time.now is 0 during create(), so we set the
+        // grace on the first frame when the clock holds the real game time.
+        this.time.delayedCall(0, () => { this.invulnUntil = this.time.now + 1500; });
+
         // BGM
         sounds.playBGM(ld.bgm);
         sounds.unlock();
@@ -980,7 +985,7 @@ export class GameScene extends Phaser.Scene {
         // Enemy waves
         if (camRight > this.enemyWaveX && this.enemyWaveX < W - 800) {
             this.spawnEnemyWave(this.enemyWaveX, this.enemyWaveX + 600);
-            this.enemyWaveX += 500;
+            this.enemyWaveX += Phaser.Math.Between(700, 950); // wider gaps = breathing room
         }
 
         // Authored set-piece beats
@@ -1004,7 +1009,14 @@ export class GameScene extends Phaser.Scene {
     }
 
     private spawnEnemyWave(xFrom: number, xTo: number) {
-        const count = Math.floor(3 * this.levelData.difficultyMod);
+        // Cap simultaneous enemies so ambient waves never stack into an unfair
+        // wall (they used to pile up to a dozen+ on screen). Set-pieces
+        // (mini-boss, gauntlet) spawn directly and intentionally exceed this.
+        const cap = 4 + Math.floor(this.levelData.difficultyMod * 1.5);
+        const active = this.enemies.countActive(true);
+        if (active >= cap) return;
+        const want = 2 + Math.floor((this.levelData.difficultyMod - 1) * 2);
+        const count = Math.min(want, cap - active);
         for (let i = 0; i < count; i++) {
             const x = Phaser.Math.Between(xFrom, xTo);
             const r = Math.random();
