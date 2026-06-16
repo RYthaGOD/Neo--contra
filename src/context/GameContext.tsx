@@ -10,6 +10,7 @@ interface GameState {
     isGameOver: boolean;
     won: boolean;
     level: number;
+    scene: string; // active Phaser scene: 'boot' | 'title' | 'game' | 'win'
 }
 
 interface GameContextType {
@@ -20,6 +21,7 @@ interface GameContextType {
     toggleShop: (open: boolean) => void;
     setGameOver: (over: boolean) => void;
     setVictory: (won: boolean) => void;
+    setScene: (name: string) => void;
     revive: () => void;
     resetGame: () => void;
 }
@@ -35,6 +37,7 @@ const DEFAULT_STATE: GameState = {
     isGameOver: false,
     won: false,
     level: 1,
+    scene: 'boot',
 };
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -71,6 +74,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setState(prev => ({ ...prev, won, isGameOver: true }));
     }, []);
 
+    const setScene = useCallback((name: string) => {
+        // Reset transient game state when returning to the title.
+        setState(prev => name === 'title'
+            ? { ...prev, scene: name, isGameOver: false, isShopOpen: false }
+            : { ...prev, scene: name });
+    }, []);
+
     // Pay-to-continue: restore lives and clear game over, keeping the score.
     const revive = useCallback(() => {
         setState(prev => ({ ...prev, lives: 3, isGameOver: false, won: false }));
@@ -88,7 +98,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     return (
-        <GameContext.Provider value={{ state, updateScore, updateLives, setWeapon, toggleShop, setGameOver, setVictory, revive, resetGame }}>
+        <GameContext.Provider value={{ state, updateScore, updateLives, setWeapon, toggleShop, setGameOver, setVictory, setScene, revive, resetGame }}>
             {children}
         </GameContext.Provider>
     );

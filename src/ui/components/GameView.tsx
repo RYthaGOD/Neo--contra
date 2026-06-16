@@ -6,7 +6,7 @@ import { useGame } from '../../context/GameContext';
 const GameView: React.FC = () => {
     const containerRef = useRef<HTMLDivElement>(null);
     const gameRef = useRef<Phaser.Game | null>(null);
-    const { state, updateScore, updateLives, toggleShop, setGameOver, setVictory, revive, resetGame, setWeapon } = useGame();
+    const { state, updateScore, updateLives, toggleShop, setGameOver, setVictory, revive, resetGame, setWeapon, setScene } = useGame();
 
     // Create the Phaser game instance once
     useEffect(() => {
@@ -29,6 +29,7 @@ const GameView: React.FC = () => {
         game.registry.set('react_revive', revive);
         game.registry.set('react_resetGame', resetGame);
         game.registry.set('react_updateWeapon', setWeapon);
+        game.registry.set('react_setScene', setScene);
 
         // Seed initial values
         game.registry.set('lives', 3);
@@ -55,7 +56,8 @@ const GameView: React.FC = () => {
         game.registry.set('react_revive', revive);
         game.registry.set('react_resetGame', resetGame);
         game.registry.set('react_updateWeapon', setWeapon);
-    }, [updateScore, updateLives, toggleShop, setGameOver, setVictory, revive, resetGame, setWeapon]);
+        game.registry.set('react_setScene', setScene);
+    }, [updateScore, updateLives, toggleShop, setGameOver, setVictory, revive, resetGame, setWeapon, setScene]);
 
     // Sync React state → Phaser registry so Phaser can read values synchronously
     useEffect(() => {

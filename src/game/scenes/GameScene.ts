@@ -132,6 +132,7 @@ export class GameScene extends Phaser.Scene {
         // begins cleanly (otherwise registry lives can still be 0 → instant death,
         // or isGameOver can still be true → update() bails and the game freezes).
         this.registry.get('react_resetGame')?.();
+        this.registry.get('react_setScene')?.('game');
         this.registry.set('isGameOver', false);
         this.registry.set('isShopOpen', false);
         this.registry.set('lives', 3);

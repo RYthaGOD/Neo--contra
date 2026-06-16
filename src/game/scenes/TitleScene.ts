@@ -9,6 +9,7 @@ export class TitleScene extends Phaser.Scene {
         const W = this.scale.width;
         const H = this.scale.height;
         this.starting = false;
+        this.registry.get('react_setScene')?.('title');
         this.cameras.main.fadeIn(400, 0, 0, 0);
 
         // Backdrop: AI title art if present, else a gradient. Dimmed for text legibility.

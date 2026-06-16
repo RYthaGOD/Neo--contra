@@ -7,6 +7,7 @@ import { ShopUI } from './ui/components/ShopUI';
 import { LeaderboardUI } from './ui/components/LeaderboardUI';
 import { MobileControls } from './ui/components/MobileControls';
 import { TokenBar } from './ui/components/TokenBar';
+import { TitleLeaderboard } from './ui/components/TitleLeaderboard';
 
 // Scales all React overlays (HUD/shop/leaderboard/mobile) from the game's native
 // 800x600 design space up to the on-screen canvas size, so the UI stays pixel-
@@ -51,6 +52,7 @@ function AppContent() {
                 {/* React overlay layers — scaled to match the game canvas */}
                 <OverlayScaler>
                     <HUD />
+                    {state.scene === 'title' && !state.isGameOver && <TitleLeaderboard />}
                     {state.isShopOpen && <ShopUI />}
                     {state.isGameOver && <LeaderboardUI />}
                 </OverlayScaler>

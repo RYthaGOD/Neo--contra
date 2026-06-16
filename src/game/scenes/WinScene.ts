@@ -10,6 +10,7 @@ export class WinScene extends Phaser.Scene {
         const H = this.scale.height;
         const score = data?.score ?? 0;
         this.restarting = false;
+        this.registry.get('react_setScene')?.('win');
         this.cameras.main.fadeIn(600, 0, 0, 0);
 
         // Background
