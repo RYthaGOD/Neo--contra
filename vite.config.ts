@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
+// build: 2026-06-16
 export default defineConfig({
   // Solana web3 libraries assume a Node-like environment. Map `global` to
   // `globalThis` and keep the real `buffer` polyfill (instead of Vite's empty
