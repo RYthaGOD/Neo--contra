@@ -31,6 +31,7 @@ export class GameScene extends Phaser.Scene {
     private aimDirY = 0;
     private invulnUntil = 0;       // ms timestamp; player is immune while time.now < this
     private invulnerable = false;  // barrier power-up (separate, timed shield)
+    private vignette?: Phaser.GameObjects.Image; // red damage edge-vignette overlay
     private lastFire = 0;
     private jumpsUsed = 0;      // for double jump (resets on landing)
     private wasOnGround = true; // for landing-dust detection
@@ -377,6 +378,7 @@ export class GameScene extends Phaser.Scene {
             const b = bulletGO as import('../entities/Bullet').Bullet;
             const e = enemyGO as Enemy;
             if (!b.isEnemy && b.active && e.active) {
+                this.hitSpark(b.x, b.y);
                 e.takeDamage(b.damage);
                 if (!b.pierce) b.kill();
             }
@@ -805,9 +807,10 @@ export class GameScene extends Phaser.Scene {
         this.lives = Math.max(0, this.lives - 1);
         this.registry.get('react_updateLives')?.(-1); // sync to React UI
         sounds.playSFX('player_hit');
-        this.cameras.main.shake(200, 0.009);
-        this.cameras.main.flash(140, 255, 40, 40);
-        if (window.navigator?.vibrate) window.navigator.vibrate(120);
+        this.cameras.main.shake(220, 0.01);
+        this.damageFlash();   // red edge vignette instead of a blinding full-screen wash
+        this.hitStop(60);     // brief freeze for impact
+        if (window.navigator?.vibrate) window.navigator.vibrate(90);
 
         if (this.lives <= 0) {
             this.playerDeathSequence();
@@ -1179,6 +1182,51 @@ export class GameScene extends Phaser.Scene {
                 onComplete: () => dot.destroy(),
             });
         }
+    }
+
+    /** Tiny spark burst at a bullet→enemy impact (non-kill feedback). */
+    public hitSpark(x: number, y: number, tint = 0xffee88) {
+        for (let i = 0; i < 4; i++) {
+            const dot = this.add.sprite(x, y, 'spark').setTint(tint).setDepth(22).setScale(0.7);
+            const a = Math.random() * Math.PI * 2;
+            const d = Phaser.Math.Between(8, 22);
+            this.tweens.add({
+                targets: dot, x: x + Math.cos(a) * d, y: y + Math.sin(a) * d,
+                alpha: 0, scale: 0.1, duration: 160 + Math.random() * 120, onComplete: () => dot.destroy(),
+            });
+        }
+    }
+
+    /** Brief freeze-frame for impact weight. Cheap; guarded against stacking. */
+    public hitStop(ms = 55) {
+        if (this.physics.world.isPaused) return;
+        this.physics.world.pause();
+        // scene clock keeps running while physics is paused, so this still fires
+        this.time.delayedCall(ms, () => this.physics.world.resume());
+    }
+
+    /** Red screen-edge vignette pulse on player damage — readable feedback that
+     *  doesn't wash the whole screen red like a full-screen flash. */
+    private damageFlash() {
+        if (!this.vignette) {
+            const W = this.scale.width, H = this.scale.height;
+            if (!this.textures.exists('dmg_vignette')) {
+                const c = document.createElement('canvas');
+                c.width = W; c.height = H;
+                const g = c.getContext('2d');
+                if (g) {
+                    const grad = g.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.32, W / 2, H / 2, Math.max(W, H) * 0.62);
+                    grad.addColorStop(0, 'rgba(255,0,0,0)');
+                    grad.addColorStop(1, 'rgba(255,16,16,0.9)');
+                    g.fillStyle = grad; g.fillRect(0, 0, W, H);
+                    this.textures.addCanvas('dmg_vignette', c);
+                }
+            }
+            this.vignette = this.add.image(W / 2, H / 2, 'dmg_vignette').setScrollFactor(0).setDepth(40).setAlpha(0);
+        }
+        this.tweens.killTweensOf(this.vignette);
+        this.vignette.setAlpha(0.7);
+        this.tweens.add({ targets: this.vignette, alpha: 0, duration: 360, ease: 'Cubic.easeOut' });
     }
 
     /** Small dust puff (landing). */

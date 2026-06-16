@@ -17,6 +17,13 @@ html, body, #root {
 body {
   margin: 0;
   overflow: hidden;
+  /* Mobile: kill pull-to-refresh / scroll-chaining, double-tap zoom, the tap
+     highlight, and accidental text selection during play. */
+  overscroll-behavior: none;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
   font-family: 'Press Start 2P', cursive;
 }
 

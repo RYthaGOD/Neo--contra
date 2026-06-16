@@ -32,6 +32,14 @@ export const TokenBar: React.FC = () => {
             >
                 {copied ? 'COPIED' : 'COPY'}
             </button>
+            <a
+                href={`https://pump.fun/coin/${TOKEN_CA}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="shrink-0 rounded border border-neon-green/70 bg-neon-green/15 px-2 py-0.5 font-bold text-neon-green transition-colors hover:bg-neon-green hover:text-black"
+            >
+                BUY
+            </a>
         </div>
     );
 };

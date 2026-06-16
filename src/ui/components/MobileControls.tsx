@@ -67,8 +67,8 @@ export const MobileControls: React.FC = () => {
             <div
                 ref={baseRef}
                 data-testid="joystick"
-                className="absolute bottom-6 left-6 w-36 h-36 rounded-full bg-white/5 border-2 border-neon-blue/25 pointer-events-auto flex items-center justify-center"
-                style={{ touchAction: 'none' }}
+                className="absolute w-36 h-36 rounded-full bg-white/5 border-2 border-neon-blue/25 pointer-events-auto flex items-center justify-center"
+                style={{ touchAction: 'none', left: 'calc(1.5rem + env(safe-area-inset-left, 0px))', bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
                 onPointerDown={(e) => {
                     capture(e.currentTarget as HTMLElement, e.pointerId);
                     dragId.current = e.pointerId;
@@ -86,7 +86,7 @@ export const MobileControls: React.FC = () => {
             </div>
 
             {/* Right: action buttons */}
-            <div className="absolute bottom-6 right-6 flex items-end gap-5 pointer-events-auto" style={{ touchAction: 'none' }}>
+            <div className="absolute flex items-end gap-5 pointer-events-auto" style={{ touchAction: 'none', right: 'calc(1.5rem + env(safe-area-inset-right, 0px))', bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}>
                 <button
                     className="w-20 h-20 rounded-full bg-neon-green/20 border-4 border-neon-green text-neon-green font-retro text-[10px] flex items-center justify-center active:scale-95 active:bg-neon-green active:text-black transition-all shadow-[0_0_20px_rgba(0,255,0,0.3)]"
                     style={{ touchAction: 'none' }}

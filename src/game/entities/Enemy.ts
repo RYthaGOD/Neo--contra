@@ -159,6 +159,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
             // set-piece kill: bigger blast + guaranteed weapon reward
             scene.spawnExplosion?.(this.x, this.y - 10, 0xff5522);
             scene.dropWeapon?.(this.x, this.y, 'S');
+            scene.hitStop?.(50);
             scene.cameras?.main?.shake(220, 0.01);
             scene.sfx?.('boss_explode');
         } else {

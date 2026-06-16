@@ -104,6 +104,7 @@ export abstract class BossBase extends Phaser.Physics.Arcade.Sprite {
         const scene = this.scene as any;
         scene.sfx?.('boss_explode');
         scene.floatScore?.(this.x, this.y - 40, 5000);
+        scene.hitStop?.(90);
         scene.cameras?.main?.shake(420, 0.012);
         // Cluster of explosions
         for (let i = 0; i < 8; i++) {
