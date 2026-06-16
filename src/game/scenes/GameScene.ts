@@ -780,7 +780,7 @@ export class GameScene extends Phaser.Scene {
 
         const sfxMap: Record<WeaponType, string> = {
             NORMAL: 'laser_fire', M: 'machine_fire', S: 'spread_fire',
-            L: 'beam_fire', F: 'laser_fire', B: 'laser_fire',
+            L: 'beam_fire', F: 'laser_fire', B: 'laser_fire', G: 'beam_fire',
         };
         sounds.playSFX(sfxMap[this.weapon]);
         this.addScore(10);
