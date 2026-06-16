@@ -4,6 +4,10 @@ How to deploy **NeoContra: Solana Assault** to [Railway](https://railway.app).
 One service runs everything: the built game **and** the leaderboard API are
 served from the same origin by `server/index.mjs`. No external database.
 
+**Railway Project:** `neo-contra`  
+**Project URL:** https://railway.com/project/12d8bd0d-660e-450a-8ffc-fe2e8328e054  
+**GitHub Repo:** https://github.com/RYthaGOD/Neo--contra
+
 ---
 
 ## 0. Before you start
@@ -48,7 +52,11 @@ A copy-paste starting point lives in [`.env.example`](../.env.example).
 
 ## 2. Create the Railway project
 
-1. Railway dashboard → **New Project** → **Deploy from GitHub repo** → pick this repo.
+> **Already created via CLI** — project `neo-contra` exists at:
+> https://railway.com/project/12d8bd0d-660e-450a-8ffc-fe2e8328e054
+
+1. Railway dashboard → **New Project** → **Deploy from GitHub repo** → pick this repo.  
+   *Or run `railway init` + `railway link` in the project root.*
 2. Railway reads [`railway.json`](../railway.json) and uses:
    - **Build:** `pnpm install --prod=false && pnpm run build`
    - **Start:** `pnpm start`  (→ `node --experimental-sqlite server/index.mjs`)

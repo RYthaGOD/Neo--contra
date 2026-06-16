@@ -47,8 +47,8 @@ frame them). Filenames `src/assets/bg/boss1.png` … `boss5.png`.
 
 1. **`boss1.png` — DeFi Destroyer Prime:** a massive magenta armored octagonal war-machine core with a glowing central eye
 2. **`boss2.png` — Flash Loan Falcon:** a sleek predatory mechanical falcon drone, golden-yellow plating, glowing jet thrusters
-3. **`boss3.png` — Rug Pull Reaper:** a spectral green cyber-reaper, tattered digital cloak, glitching scythe of light
 4. **`boss4.png` — Hash Rate Hydra:** a multi-headed serpentine machine of red-hot mining rigs, cables for necks, molten maws
+3. **`boss3.png` — Rug Pull Reaper:** a spectral green cyber-reaper, tattered digital cloak, glitching scythe of light
 5. **`boss5.png` — Satoshi Sentinel:** a towering white-and-gold guardian construct, holographic halo, radiant protocol glyphs
 
 ---
