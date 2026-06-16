@@ -53,9 +53,12 @@ function AppContent() {
                     <HUD />
                     {state.isShopOpen && <ShopUI />}
                     {state.isGameOver && <LeaderboardUI />}
-                    <MobileControls />
                 </OverlayScaler>
             </div>
+
+            {/* Touch controls — full-screen, real device-size (outside the scaled
+                overlay so they pin to the actual screen edges on phones). */}
+            <MobileControls />
 
             {/* Token contract-address bar — shows only once VITE_TOKEN_CA is set */}
             <TokenBar />

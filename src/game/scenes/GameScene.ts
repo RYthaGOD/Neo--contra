@@ -347,7 +347,10 @@ export class GameScene extends Phaser.Scene {
         this.events.on('destroy', cleanup);
 
         this.handlers.game_jump = () => { this.mobileJump = true; };
-        this.handlers.game_fire = () => { this.mobileFire = true; };
+        // Fire is a HELD state on mobile (down/up) so the player can hold to
+        // auto-fire, matching keyboard hold-to-fire.
+        this.handlers.game_fire_down = () => { this.mobileFire = true; };
+        this.handlers.game_fire_up = () => { this.mobileFire = false; };
         this.handlers.game_move = (e: Event) => {
             const ce = e as CustomEvent;
             this.mobileDir = ce.detail;
@@ -678,9 +681,8 @@ export class GameScene extends Phaser.Scene {
             }
         }
 
-        // --- Fire (Space or Z key) ---
+        // --- Fire (Space/Z key, or held mobile fire button) ---
         const fireHeld = this.keys.fire.isDown || this.keys.z.isDown || this.mobileFire;
-        this.mobileFire = false;
         const cfg = WEAPONS[this.weapon];
         // Upgraded weapons fire faster.
         const interval = cfg.fireInterval * (this.weaponLevel >= 2 ? 0.6 : 1);
