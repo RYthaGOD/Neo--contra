@@ -3,8 +3,15 @@ import { useGame } from '../../context/GameContext';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { submitScore, getTopScores, ScoreEntry } from '../../leaderboard/client';
 import { buyItem } from '../../solana/TransactionLogic';
-import { DEV_WALLET, PRICES, CURRENCY } from '../../config/constants';
+import { DEV_WALLET, PRICES, CURRENCY, TOKEN_CA, TOKEN_SYMBOL } from '../../config/constants';
 import { Trophy, Send, RefreshCw, RotateCcw, Zap } from 'lucide-react';
+
+// X (formerly Twitter) logo — lucide ships only the legacy bird, so inline the mark.
+const XLogo: React.FC<{ className?: string }> = ({ className }) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+);
 
 export const LeaderboardUI: React.FC = () => {
     const { state, resetGame, revive } = useGame();
@@ -62,6 +69,19 @@ export const LeaderboardUI: React.FC = () => {
         }
     };
 
+    const shareToX = () => {
+        const ticker = TOKEN_CA ? ` ${TOKEN_SYMBOL}` : '';
+        const verb = state.won ? 'beat' : 'scored';
+        const text = state.won
+            ? `I beat NeoContra: Solana Assault with ${state.score.toLocaleString()} points!${ticker} 🎮🔫\n\nThink you can outgun me? 🏆`
+            : `I ${verb} ${state.score.toLocaleString()} & reached Level ${state.level} in NeoContra: Solana Assault!${ticker} 🎮🔫\n\nThink you can outgun me? 🏆`;
+        const url = typeof window !== 'undefined' ? window.location.origin : '';
+        const intent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`
+            + (url ? `&url=${encodeURIComponent(url)}` : '')
+            + '&hashtags=NeoContra,Solana';
+        window.open(intent, '_blank', 'noopener,noreferrer');
+    };
+
     useEffect(() => { loadScores(); }, []);
 
     return (
@@ -111,6 +131,11 @@ export const LeaderboardUI: React.FC = () => {
                             SUBMIT SCORE
                         </button>
                     )}
+                    <button onClick={shareToX}
+                        className="w-full py-2.5 bg-white text-black font-retro text-[8px] uppercase flex items-center justify-center gap-2 hover:bg-gray-200 transition-all">
+                        <XLogo className="w-3 h-3" />
+                        SHARE ON X
+                    </button>
                     <button onClick={() => {
                         resetGame();
                         // Tell Phaser to go back to title
