@@ -1,5 +1,15 @@
 import Phaser from 'phaser';
 
+// Per-boss visual config. When the AI portrait exists it's used (cut out) as the
+// in-fight sprite at `artHeight` px tall; otherwise we fall back to the
+// procedural `boss_core` scaled by `procScale` and tinted `tint`.
+export interface BossArt {
+    id: number;
+    procScale: number;
+    tint: number;
+    artHeight?: number;
+}
+
 export abstract class BossBase extends Phaser.Physics.Arcade.Sprite {
     protected health: number;
     protected maxHealth: number;
@@ -11,7 +21,7 @@ export abstract class BossBase extends Phaser.Physics.Arcade.Sprite {
     private nameText!: Phaser.GameObjects.Text;
     private dead = false;
 
-    constructor(scene: Phaser.Scene, x: number, y: number, health: number, name: string) {
+    constructor(scene: Phaser.Scene, x: number, y: number, health: number, name: string, art: BossArt) {
         super(scene, x, y, 'boss_core');
         this.health = health;
         this.maxHealth = health;
@@ -21,7 +31,26 @@ export abstract class BossBase extends Phaser.Physics.Arcade.Sprite {
         this.setCollideWorldBounds(false);
         this.setImmovable(true);
         (this.body as Phaser.Physics.Arcade.Body).setAllowGravity(false);
+        this.applyArt(art);
         this.createHud();
+    }
+
+    // Use the cut-out portrait as the fought sprite if present, else procedural.
+    private applyArt(art: BossArt) {
+        const cut = 'boss_cut_' + art.id;
+        if (this.scene.textures.exists(cut)) {
+            this.setTexture(cut);
+            const src = this.scene.textures.get(cut).getSourceImage() as { width: number; height: number };
+            this.setScale((art.artHeight ?? 220) / src.height);
+            // Hitbox = central portion of the character (the frame has transparent
+            // margins). Arcade bodies track the sprite scale, so size in source px.
+            const bw = src.width * 0.6, bh = src.height * 0.82;
+            const body = this.body as Phaser.Physics.Arcade.Body;
+            body.setSize(bw, bh);
+            body.setOffset((src.width - bw) / 2, (src.height - bh) / 2);
+        } else {
+            this.setScale(art.procScale).setTint(art.tint);
+        }
     }
 
     private createHud() {
@@ -96,8 +125,7 @@ export abstract class BossBase extends Phaser.Physics.Arcade.Sprite {
 
 export class DeFiDestroyer extends BossBase {
     constructor(scene: Phaser.Scene, x: number, y: number) {
-        super(scene, x, y, 26, 'DeFi Destroyer Prime');
-        this.setScale(2.4).setTint(0xff00ff);
+        super(scene, x, y, 26, 'DeFi Destroyer Prime', { id: 1, procScale: 2.4, tint: 0xff00ff, artHeight: 250 });
     }
     updateAI() {
         this.y = 300 + Math.sin(this.stateTimer * 0.04) * 150;
@@ -109,8 +137,7 @@ export class DeFiDestroyer extends BossBase {
 export class FlashLoanFalcon extends BossBase {
     private diveState: 'hover' | 'dive' | 'return' = 'hover';
     constructor(scene: Phaser.Scene, x: number, y: number) {
-        super(scene, x, y, 34, 'Flash Loan Falcon');
-        this.setScale(2.2).setTint(0xffff00);
+        super(scene, x, y, 34, 'Flash Loan Falcon', { id: 2, procScale: 2.2, tint: 0xffff00, artHeight: 200 });
     }
     updateAI() {
         const player = (this.scene as any).player;
@@ -131,8 +158,7 @@ export class FlashLoanFalcon extends BossBase {
 
 export class RugPullReaper extends BossBase {
     constructor(scene: Phaser.Scene, x: number, y: number) {
-        super(scene, x, y, 46, 'Rug Pull Reaper');
-        this.setScale(3).setTint(0x00ff66);
+        super(scene, x, y, 46, 'Rug Pull Reaper', { id: 3, procScale: 3, tint: 0x00ff66, artHeight: 270 });
     }
     updateAI() {
         if (this.stateTimer % 110 === 0) {
@@ -149,8 +175,7 @@ export class RugPullReaper extends BossBase {
 
 export class HashRateHydra extends BossBase {
     constructor(scene: Phaser.Scene, x: number, y: number) {
-        super(scene, x, y, 60, 'Hash Rate Hydra');
-        this.setScale(3.4).setTint(0xff3333);
+        super(scene, x, y, 60, 'Hash Rate Hydra', { id: 4, procScale: 3.4, tint: 0xff3333, artHeight: 280 });
     }
     updateAI() {
         const view = this.scene.cameras.main.worldView;
@@ -165,8 +190,7 @@ export class HashRateHydra extends BossBase {
 
 export class SatoshiSentinel extends BossBase {
     constructor(scene: Phaser.Scene, x: number, y: number) {
-        super(scene, x, y, 90, 'Satoshi Sentinel');
-        this.setScale(4).setTint(0xffffff);
+        super(scene, x, y, 90, 'Satoshi Sentinel', { id: 5, procScale: 4, tint: 0xffffff, artHeight: 300 });
     }
     updateAI() {
         const player = (this.scene as any).player;
