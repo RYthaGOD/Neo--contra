@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
     PRICES, DEV_WALLET, WeaponType, CURRENCY,
     TOKEN_MINT, TOKEN_DECIMALS, TOKEN_SYMBOL, HOLDER_MIN, SOLANA_NETWORK, tokenPrice,
+    SKINS,
 } from '../../config/constants';
 import { useGame } from '../../context/GameContext';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
@@ -25,7 +26,7 @@ const explorerTx = (sig: string) =>
     `https://explorer.solana.com/tx/${sig}${SOLANA_NETWORK === 'mainnet-beta' ? '' : `?cluster=${SOLANA_NETWORK}`}`;
 
 export const ShopUI: React.FC = () => {
-    const { toggleShop, updateLives, setWeapon } = useGame();
+    const { state, toggleShop, updateLives, setWeapon, setSkin } = useGame();
     const { connection } = useConnection();
     const wallet = useWallet();
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -84,11 +85,20 @@ export const ShopUI: React.FC = () => {
         applyItem(id); setStatus('success');
     };
 
+    // Holder skins unlock alongside the holder weapon; devMode previews them too.
+    const skinsUnlocked = isHolder || devMode;
+    const selectSkin = (skin: typeof SKINS[number]) => {
+        if (skin.holder && !skinsUnlocked) return;
+        setSkin(skin.id);
+        // Push straight to Phaser so the swap is instant when the shop closes.
+        (window as any).__phaserGame?.registry?.set('skin', skin.id);
+    };
+
     const close = () => { toggleShop(false); setStatus('idle'); };
 
     return (
         <div className="absolute inset-0 bg-black/92 flex items-center justify-center p-4 z-[100] backdrop-blur-sm pointer-events-auto">
-            <div className="bg-black border-4 border-neon-purple p-6 w-full max-w-xl shadow-[0_0_50px_rgba(188,19,254,0.5)] relative">
+            <div className="bg-black border-4 border-neon-purple p-6 w-full max-w-xl shadow-[0_0_50px_rgba(188,19,254,0.5)] relative max-h-[560px] overflow-y-auto">
                 <div className="absolute inset-0 pointer-events-none opacity-10
                     bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.3)_50%)] bg-[size:100%_4px]" />
 
@@ -140,7 +150,7 @@ export const ShopUI: React.FC = () => {
 
                 {status === 'idle' && (
                     <>
-                        <div className="grid grid-cols-2 gap-3 relative z-10 max-h-[360px] overflow-y-auto pr-1">
+                        <div className="grid grid-cols-2 gap-3 relative z-10 max-h-[220px] overflow-y-auto pr-1">
                             {ITEMS.map((item, i) => (
                                 <ShopItem
                                     key={item.id} index={i + 1} entry={item}
@@ -152,6 +162,47 @@ export const ShopUI: React.FC = () => {
                                 />
                             ))}
                         </div>
+
+                        {/* Holder skins — cosmetic player recolors, persist across runs */}
+                        <div className="relative z-10 mt-4 border-t border-neon-purple/30 pt-3">
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="font-retro text-[9px] uppercase text-neon-purple tracking-widest drop-shadow-[0_0_4px_rgba(188,19,254,0.6)]">
+                                    ◈ HOLDER SKINS
+                                </span>
+                                {!skinsUnlocked && (
+                                    <span className="flex items-center gap-1 text-[7px] font-retro text-gray-500 uppercase">
+                                        <Lock className="w-2.5 h-2.5" /> HOLD {TOKEN_SYMBOL}
+                                    </span>
+                                )}
+                            </div>
+                            <div className="grid grid-cols-4 gap-2">
+                                {SKINS.map(skin => {
+                                    const equipped = state.skin === skin.id;
+                                    const locked = skin.holder && !skinsUnlocked;
+                                    return (
+                                        <button key={skin.id} disabled={locked}
+                                            onClick={() => selectSkin(skin)}
+                                            title={locked ? `Hold ${TOKEN_SYMBOL} to unlock` : skin.blurb}
+                                            className={`relative flex flex-col items-center gap-1 p-2 border-2 transition-all ${locked ? 'opacity-40 cursor-not-allowed' : 'active:scale-95 hover:bg-white/5'}`}
+                                            style={{
+                                                borderColor: equipped ? skin.color : `${skin.color}55`,
+                                                boxShadow: equipped ? `0 0 12px ${skin.color}66, inset 0 0 10px ${skin.color}22` : 'none',
+                                            }}>
+                                            <span className="text-xl leading-none drop-shadow-[0_0_4px_rgba(255,255,255,0.35)]">{skin.icon}</span>
+                                            <span className="font-retro text-[6px] uppercase text-center leading-tight" style={{ color: skin.color }}>{skin.name}</span>
+                                            {equipped ? (
+                                                <span className="font-retro text-[6px] text-black px-1" style={{ backgroundColor: skin.color }}>EQUIP</span>
+                                            ) : locked ? (
+                                                <Lock className="w-2.5 h-2.5 text-gray-500" />
+                                            ) : (
+                                                <span className="font-retro text-[6px] text-neon-green uppercase">SELECT</span>
+                                            )}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
                         <div className="relative z-10 mt-4 flex items-center justify-between text-[7px] font-retro text-neon-blue/70 border-t border-neon-purple/30 pt-3">
                             <span>{tokenEnabled ? `PAY WITH ${TOKEN_SYMBOL} = −20% · BURNED 🔥` : '▲▼ SELECT'}</span>
                             <button onClick={close}

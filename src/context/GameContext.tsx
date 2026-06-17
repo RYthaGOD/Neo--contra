@@ -1,11 +1,21 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
-import { WeaponType } from '../config/constants';
+import { WeaponType, SkinId } from '../config/constants';
+
+const SKIN_KEY = 'neocontra.skin';
+const loadSkin = (): SkinId => {
+    try {
+        const s = localStorage.getItem(SKIN_KEY);
+        if (s === 'GOLD' || s === 'SOLANA' || s === 'DIAMOND' || s === 'DEFAULT') return s;
+    } catch { /* ignore unavailable storage */ }
+    return 'DEFAULT';
+};
 
 interface GameState {
     lives: number;
     score: number;
     weapon: WeaponType;
     weaponLevel: number;
+    skin: SkinId;     // cosmetic player skin; persists across runs
     isShopOpen: boolean;
     isGameOver: boolean;
     won: boolean;
@@ -18,6 +28,7 @@ interface GameContextType {
     updateScore: (delta: number) => void;
     updateLives: (delta: number) => void;
     setWeapon: (val: WeaponType, level?: number) => void;
+    setSkin: (val: SkinId) => void;
     toggleShop: (open: boolean) => void;
     setGameOver: (over: boolean) => void;
     setVictory: (won: boolean) => void;
@@ -33,6 +44,7 @@ const DEFAULT_STATE: GameState = {
     score: 0,
     weapon: 'NORMAL',
     weaponLevel: 1,
+    skin: 'DEFAULT',
     isShopOpen: false,
     isGameOver: false,
     won: false,
@@ -41,7 +53,7 @@ const DEFAULT_STATE: GameState = {
 };
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [state, setState] = useState<GameState>(DEFAULT_STATE);
+    const [state, setState] = useState<GameState>({ ...DEFAULT_STATE, skin: loadSkin() });
     const stateRef = useRef(state);
     stateRef.current = state;
 
@@ -58,6 +70,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const setWeapon = useCallback((val: WeaponType, level = 1) => {
         setState(prev => ({ ...prev, weapon: val, weaponLevel: level }));
+    }, []);
+
+    const setSkin = useCallback((val: SkinId) => {
+        try { localStorage.setItem(SKIN_KEY, val); } catch { /* ignore */ }
+        setState(prev => ({ ...prev, skin: val }));
     }, []);
 
     const toggleShop = useCallback((open: boolean) => {
@@ -87,7 +104,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     const resetGame = useCallback(() => {
-        setState(DEFAULT_STATE);
+        // Keep the cosmetic skin — it's a holder unlock, not run state.
+        setState(prev => ({ ...DEFAULT_STATE, skin: prev.skin }));
     }, []);
 
     // Keep registry lives/score readable to Phaser without re-creating callbacks
@@ -98,7 +116,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     return (
-        <GameContext.Provider value={{ state, updateScore, updateLives, setWeapon, toggleShop, setGameOver, setVictory, setScene, revive, resetGame }}>
+        <GameContext.Provider value={{ state, updateScore, updateLives, setWeapon, setSkin, toggleShop, setGameOver, setVictory, setScene, revive, resetGame }}>
             {children}
         </GameContext.Provider>
     );

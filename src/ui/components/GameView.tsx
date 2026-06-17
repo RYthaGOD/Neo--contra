@@ -35,6 +35,7 @@ const GameView: React.FC = () => {
         game.registry.set('lives', 3);
         game.registry.set('score', 0);
         game.registry.set('weapon', 'NORMAL');
+        game.registry.set('skin', state.skin);
 
         return () => {
             (window as any).__phaserGame = null;
@@ -68,7 +69,8 @@ const GameView: React.FC = () => {
         game.registry.set('isGameOver', state.isGameOver);
         game.registry.set('isShopOpen', state.isShopOpen);
         game.registry.set('weapon', state.weapon);
-    }, [state.lives, state.score, state.isGameOver, state.isShopOpen, state.weapon]);
+        game.registry.set('skin', state.skin);
+    }, [state.lives, state.score, state.isGameOver, state.isShopOpen, state.weapon, state.skin]);
 
     return <div ref={containerRef} className="w-full h-full bg-black" />;
 };

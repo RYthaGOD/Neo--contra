@@ -26,6 +26,7 @@ export class GameScene extends Phaser.Scene {
     // --- Player ---
     public player!: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
     private playerState: PlayerState = 'idle';
+    private skinPrefix = '';     // '' = default soldier, else 'gold'|'solana'|'diamond'
     private facing = 1;          // 1=right, -1=left
     private aimDirX = 1;
     private aimDirY = 0;
@@ -146,12 +147,19 @@ export class GameScene extends Phaser.Scene {
         // across restarts of this scene.
         const onWeapon = (_parent: unknown, value: WeaponType) => { this.weapon = value || 'NORMAL'; };
         const onLives = (_parent: unknown, value: number) => { this.lives = value; };
+        const onSkin = (_parent: unknown, value: string) => { this.skinPrefix = this.skinToPrefix(value); };
         this.registry.events.on('changedata-weapon', onWeapon);
         this.registry.events.on('changedata-lives', onLives);
+        this.registry.events.on('changedata-skin', onSkin);
         this.events.once('shutdown', () => {
             this.registry.events.off('changedata-weapon', onWeapon);
             this.registry.events.off('changedata-lives', onLives);
+            this.registry.events.off('changedata-skin', onSkin);
         });
+
+        // Skin is cosmetic and persists across runs — read the current value
+        // (synced from React) rather than resetting it like weapon/lives above.
+        this.skinPrefix = this.skinToPrefix(this.registry.get('skin'));
 
         this.setupLevel();
         this.cameras.main.fadeIn(450, 0, 0, 0);
@@ -180,7 +188,7 @@ export class GameScene extends Phaser.Scene {
 
         // Player
         if (!this.player) {
-            this.player = this.physics.add.sprite(80, 440, 'player_idle') as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
+            this.player = this.physics.add.sprite(80, 440, this.playerTex('idle')) as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
             this.player.setCollideWorldBounds(true);
             this.player.setSize(14, 34).setOffset(6, 4);
             this.player.setDepth(10);
@@ -723,23 +731,40 @@ export class GameScene extends Phaser.Scene {
         }
     }
 
+    // Map a registry skin id (e.g. 'GOLD') to the texture-key prefix ('gold').
+    // DEFAULT / unknown → '' so the original player_* textures are used.
+    private skinToPrefix(skin: unknown): string {
+        const id = typeof skin === 'string' ? skin.toLowerCase() : '';
+        return id === 'gold' || id === 'solana' || id === 'diamond' ? id : '';
+    }
+
+    // Texture key for a pose, honoring the active skin. Falls back to the default
+    // texture if a skinned variant somehow isn't loaded.
+    private playerTex(pose: string): string {
+        if (this.skinPrefix) {
+            const key = `player_${this.skinPrefix}_${pose}`;
+            if (this.textures.exists(key)) return key;
+        }
+        return `player_${pose}`;
+    }
+
     private applyPlayerSprite(onGround: boolean, moveX: number) {
         const body = this.player.body as Phaser.Physics.Arcade.Body;
         switch (this.playerState) {
             case 'prone':
-                this.player.setTexture('player_prone');
+                this.player.setTexture(this.playerTex('prone'));
                 body.setSize(34, 14).setOffset(4, 6); // wider, shorter
                 break;
             case 'jump':
-                this.player.setTexture('player_jump');
+                this.player.setTexture(this.playerTex('jump'));
                 body.setSize(14, 30).setOffset(6, 4);
                 break;
             case 'run':
-                this.player.setTexture(Math.floor(this.time.now / 100) % 2 === 0 ? 'player_run1' : 'player_run2');
+                this.player.setTexture(this.playerTex(Math.floor(this.time.now / 100) % 2 === 0 ? 'run1' : 'run2'));
                 body.setSize(14, 34).setOffset(6, 4);
                 break;
             default:
-                this.player.setTexture('player_idle');
+                this.player.setTexture(this.playerTex('idle'));
                 body.setSize(14, 34).setOffset(6, 4);
                 break;
         }

@@ -12,6 +12,15 @@ interface Palette {
 const PLAYER: Palette = { band: 0xff3344, skin: 0xffcc99, shirt: 0x2ce8a0, pants: 0x2a4cd6, gun: 0xd0d0d0, eye: 0x202020 };
 const ENEMY: Palette = { band: 0x222222, skin: 0xd98c5f, shirt: 0xff4d4d, pants: 0x7a1f1f, gun: 0x888888, eye: 0xffff00 };
 
+// Holder-only cosmetic skins. Keyed by the lowercased SkinId — textures are
+// generated as `player_<prefix>_<pose>` (e.g. player_gold_run1). DEFAULT keeps
+// the original unprefixed keys for backwards compatibility.
+const SKIN_PALETTES: Record<string, Palette> = {
+    gold:    { band: 0xffd23f, skin: 0xffcc99, shirt: 0xf5a623, pants: 0x8a5a16, gun: 0xfff1b0, eye: 0x3a2400 },
+    solana:  { band: 0x14f195, skin: 0xffcc99, shirt: 0x9945ff, pants: 0x3b1a6e, gun: 0x14f195, eye: 0x0c8f59 },
+    diamond: { band: 0xeaffff, skin: 0xcfe9ff, shirt: 0x66e0ff, pants: 0x1f6fae, gun: 0xffffff, eye: 0x004a6e },
+};
+
 type Pose = 'idle' | 'run1' | 'run2' | 'jump';
 
 /**
@@ -25,6 +34,15 @@ export class TextureFactory {
         TextureFactory.soldier(scene, 'player_run2', PLAYER, 'run2');
         TextureFactory.soldier(scene, 'player_jump', PLAYER, 'jump');
         TextureFactory.prone(scene, 'player_prone', PLAYER);
+
+        // Holder-only recolored skins (player_<prefix>_<pose>)
+        for (const [prefix, palette] of Object.entries(SKIN_PALETTES)) {
+            TextureFactory.soldier(scene, `player_${prefix}_idle`, palette, 'idle');
+            TextureFactory.soldier(scene, `player_${prefix}_run1`, palette, 'run1');
+            TextureFactory.soldier(scene, `player_${prefix}_run2`, palette, 'run2');
+            TextureFactory.soldier(scene, `player_${prefix}_jump`, palette, 'jump');
+            TextureFactory.prone(scene, `player_${prefix}_prone`, palette);
+        }
 
         TextureFactory.soldier(scene, 'enemy_idle', ENEMY, 'idle');
         TextureFactory.soldier(scene, 'enemy_run1', ENEMY, 'run1');

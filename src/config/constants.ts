@@ -77,3 +77,25 @@ export const WEAPONS: Record<WeaponType, WeaponConfig> = {
 
 // Power-up letters that can drop from pods (B handled as a timed shield)
 export const POWERUP_LETTERS: WeaponType[] = ['M', 'S', 'L', 'F', 'B'];
+
+// ─── Player skins ───────────────────────────────────────────────────────────
+// DEFAULT is the free standard soldier; the rest are holder-only cosmetic
+// recolors selectable in the Armory. The ids double as the texture-key prefix
+// (lowercased) in TextureFactory and the registry value Phaser reads.
+export type SkinId = 'DEFAULT' | 'GOLD' | 'SOLANA' | 'DIAMOND';
+
+export interface SkinMeta {
+    id: SkinId;
+    name: string;
+    icon: string;
+    blurb: string;
+    color: string;   // CSS hex for the Armory card accent
+    holder: boolean; // gated to token holders?
+}
+
+export const SKINS: SkinMeta[] = [
+    { id: 'DEFAULT', name: 'RECRUIT',       icon: '🪖', blurb: 'STANDARD ISSUE',       color: '#2ce8a0', holder: false },
+    { id: 'GOLD',    name: 'GOLD WHALE',    icon: '🐋', blurb: 'MOLTEN-GOLD PLATING',  color: '#ffcf3f', holder: true  },
+    { id: 'SOLANA',  name: 'VALIDATOR',     icon: '◎',  blurb: 'SOLANA NODE ARMOR',    color: '#9945ff', holder: true  },
+    { id: 'DIAMOND', name: 'DIAMOND HANDS', icon: '💎', blurb: 'NEVER SELLING',        color: '#7fefff', holder: true  },
+];
