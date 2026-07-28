@@ -12,7 +12,7 @@ interface Palette {
 const PLAYER: Palette = { band: 0xff3344, skin: 0xffcc99, shirt: 0x2ce8a0, pants: 0x2a4cd6, gun: 0xd0d0d0, eye: 0x202020 };
 const ENEMY: Palette = { band: 0x222222, skin: 0xd98c5f, shirt: 0xff4d4d, pants: 0x7a1f1f, gun: 0x888888, eye: 0xffff00 };
 
-// Holder-only cosmetic skins. Keyed by the lowercased SkinId — textures are
+// Purchasable cosmetic skins. Keyed by the lowercased SkinId — textures are
 // generated as `player_<prefix>_<pose>` (e.g. player_gold_run1). DEFAULT keeps
 // the original unprefixed keys for backwards compatibility.
 const SKIN_PALETTES: Record<string, Palette> = {
@@ -35,7 +35,7 @@ export class TextureFactory {
         TextureFactory.soldier(scene, 'player_jump', PLAYER, 'jump');
         TextureFactory.prone(scene, 'player_prone', PLAYER);
 
-        // Holder-only recolored skins (player_<prefix>_<pose>)
+        // Recolored cosmetic skins (player_<prefix>_<pose>)
         for (const [prefix, palette] of Object.entries(SKIN_PALETTES)) {
             TextureFactory.soldier(scene, `player_${prefix}_idle`, palette, 'idle');
             TextureFactory.soldier(scene, `player_${prefix}_run1`, palette, 'run1');

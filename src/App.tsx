@@ -6,7 +6,6 @@ import { HUD } from './ui/components/HUD';
 import { ShopUI } from './ui/components/ShopUI';
 import { LeaderboardUI } from './ui/components/LeaderboardUI';
 import { MobileControls } from './ui/components/MobileControls';
-import { TokenBar } from './ui/components/TokenBar';
 import { TitleLeaderboard } from './ui/components/TitleLeaderboard';
 
 // Scales all React overlays (HUD/shop/leaderboard/mobile) from the game's native
@@ -61,9 +60,6 @@ function AppContent() {
             {/* Touch controls — full-screen, real device-size (outside the scaled
                 overlay so they pin to the actual screen edges on phones). */}
             <MobileControls />
-
-            {/* Token contract-address bar — shows only once VITE_TOKEN_CA is set */}
-            <TokenBar />
         </div>
     );
 }

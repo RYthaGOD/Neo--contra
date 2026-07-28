@@ -15,11 +15,12 @@ generated — no external asset files), and a lightweight bundled leaderboard.
   hazards, a double-jump climb to a weapon reward, and a unique end **boss**.
 - **Parallax world**: gradient sky, factory skyline with smokestacks, neon
   billboards, foliage, and rain — themed per level.
-- **Solana payments (native SOL):**
-  - In-game **Armory** shop (spend SOL on weapons/lives).
+- **Solana payments (native SOL only):**
+  - In-game **Armory** shop (spend SOL on weapons/lives, incl. the top-tier
+    **Genesis Beam**, plus one-time cosmetic **skin** unlocks).
   - **Pay-to-continue** revive on game over (keeps your score).
   - Connect Phantom/Solflare/Mobile wallet; purchases are plain SOL transfers to
-    your treasury wallet. No SPL token required.
+    your treasury wallet. No SPL token involved anywhere.
 - **Global leaderboard**: bundled **Express + SQLite** API (no external DB
   service required); persists to a Railway volume.
 - Procedural WebAudio SFX/music, screen shake, particles, CRT styling, PWA.
@@ -65,8 +66,6 @@ deploy. Set these build-time vars, then redeploy:
 | `VITE_DEV_WALLET` | your treasury wallet (receives shop/continue SOL) |
 | `VITE_SOLANA_NETWORK` | `devnet` for testing, `mainnet-beta` for launch |
 | `VITE_RPC_URL` | a dedicated RPC (Helius/QuickNode); falls back to the public cluster |
-| `VITE_TOKEN_CA` | pump.fun token contract address — paste **after launch**; shows a copyable CA bar (blank = hidden) |
-| `VITE_TOKEN_SYMBOL` | ticker shown beside the CA (e.g. `$NEO`); defaults to `$TOKEN` |
 
 Prices (in SOL) live in `src/config/constants.ts` (`PRICES`). Leave
 `VITE_DEV_WALLET` blank to run in **DEV mode** (shop + continue are free, no

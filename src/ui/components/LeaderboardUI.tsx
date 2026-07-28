@@ -3,7 +3,7 @@ import { useGame } from '../../context/GameContext';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { submitScore, getTopScores, ScoreEntry } from '../../leaderboard/client';
 import { buyItem } from '../../solana/TransactionLogic';
-import { DEV_WALLET, PRICES, CURRENCY, TOKEN_CA, TOKEN_SYMBOL } from '../../config/constants';
+import { DEV_WALLET, PRICES, CURRENCY } from '../../config/constants';
 import { Trophy, Send, RefreshCw, RotateCcw, Zap } from 'lucide-react';
 
 // X (formerly Twitter) logo — lucide ships only the legacy bird, so inline the mark.
@@ -70,11 +70,10 @@ export const LeaderboardUI: React.FC = () => {
     };
 
     const shareToX = () => {
-        const ticker = TOKEN_CA ? ` ${TOKEN_SYMBOL}` : '';
         const verb = state.won ? 'beat' : 'scored';
         const text = state.won
-            ? `I beat NeoContra: Solana Assault with ${state.score.toLocaleString()} points!${ticker} 🎮🔫\n\nThink you can outgun me? 🏆`
-            : `I ${verb} ${state.score.toLocaleString()} & reached Level ${state.level} in NeoContra: Solana Assault!${ticker} 🎮🔫\n\nThink you can outgun me? 🏆`;
+            ? `I beat NeoContra: Solana Assault with ${state.score.toLocaleString()} points! 🎮🔫\n\nThink you can outgun me? 🏆`
+            : `I ${verb} ${state.score.toLocaleString()} & reached Level ${state.level} in NeoContra: Solana Assault! 🎮🔫\n\nThink you can outgun me? 🏆`;
         const url = typeof window !== 'undefined' ? window.location.origin : '';
         const intent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`
             + (url ? `&url=${encodeURIComponent(url)}` : '')

@@ -7,7 +7,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 export default defineConfig({
   // Solana web3 libraries assume a Node-like environment. Map `global` to
   // `globalThis` and keep the real `buffer` polyfill (instead of Vite's empty
-  // browser stub) so wallet/token calls work in the browser.
+  // browser stub) so wallet calls work in the browser.
   define: {
     global: 'globalThis',
   },

@@ -18,8 +18,6 @@ You'll need:
 - Your **treasury wallet** address (a normal Solana wallet pubkey) — this is where
   shop/continue SOL lands.
 - A dedicated **RPC URL** (Helius/QuickNode recommended for mainnet).
-- *(Optional, later)* your **pump.fun token contract address** — paste it in once
-  the token is live to show the copyable CA bar.
 
 > **Node 22+ is required.** The leaderboard uses Node's built-in `node:sqlite`
 > (`--experimental-sqlite`), which only exists on Node ≥ 22. This is pinned via
@@ -40,8 +38,6 @@ Set these as **Railway service Variables** (Service → *Variables* tab).
 | `VITE_DEV_WALLET` | build | Your treasury wallet pubkey. **Blank = DEV mode** (shop + continue are free, no wallet/payment). Set it to take real SOL. |
 | `VITE_SOLANA_NETWORK` | build | `devnet` to test, `mainnet-beta` to go live. |
 | `VITE_RPC_URL` | build | Your dedicated RPC endpoint. Falls back to the public cluster if blank (fine for devnet, **not** for mainnet). |
-| `VITE_TOKEN_CA` | build | Token contract address (SPL mint). **Leave blank until launch**; once set, a copyable "CA" bar appears in the UI. |
-| `VITE_TOKEN_SYMBOL` | build | Ticker beside the CA, e.g. `$NEO`. Defaults to `$TOKEN`. |
 | `VITE_LEADERBOARD_URL` | build | **Leave blank.** The API is same-origin. Only set this if you host the API on a *different* domain than the game. |
 | `DATA_DIR` | runtime | `/data` — where the SQLite file lives. Must match your mounted volume (step 3). |
 | `PORT` | runtime | **Don't set this** — Railway injects it automatically and the server reads it. |
@@ -111,23 +107,13 @@ Once it's live (replace `<your-app>` with your Railway URL):
 5. Do one real purchase end-to-end and confirm the SOL lands in the treasury.
 
 Prices (in SOL) live in [`src/config/constants.ts`](../src/config/constants.ts)
-under `PRICES` — edit and redeploy to change them.
+under `PRICES` — edit and redeploy to change them. Everything purchasable (shop
+items, the Genesis Beam, cosmetic skins, the revive) is a **native SOL** transfer;
+there is no SPL token anywhere in the app.
 
 ---
 
-## 7. Adding the pump.fun token CA (after launch)
-
-1. Launch the token, copy its **contract address (SPL mint)**.
-2. Set `VITE_TOKEN_CA` = that address (and optionally `VITE_TOKEN_SYMBOL`, e.g. `$NEO`).
-3. **Redeploy.** A copyable CA bar now shows at the bottom of the screen.
-
-> This is **display only** today — no payment or gating uses the token yet. Token
-> *utility* (holder perks, token checkout, etc.) is a later, additive change and
-> won't touch the existing SOL flow.
-
----
-
-## 8. Security notes
+## 7. Security notes
 
 - **Never commit `.env`.** It's gitignored. Set secrets only as Railway variables.
 - **The Helius/RPC key ships in the public client bundle** (all `VITE_*` vars do).
@@ -137,7 +123,7 @@ under `PRICES` — edit and redeploy to change them.
 
 ---
 
-## 9. Troubleshooting
+## 8. Troubleshooting
 
 | Symptom | Cause / Fix |
 |---|---|
@@ -147,7 +133,7 @@ under `PRICES` — edit and redeploy to change them.
 | Scores reset on every deploy | Volume not mounted at `/data`, or `DATA_DIR` ≠ `/data`. |
 | Shop charges fail / "Insufficient SOL" | Wrong network, no RPC, or wallet lacks SOL for the item + fee. Verify `VITE_SOLANA_NETWORK` and `VITE_RPC_URL`. |
 | Changed a `VITE_*` var but nothing changed | Those are baked at build time — **redeploy**. |
-| CA bar not showing | `VITE_TOKEN_CA` blank or you didn't redeploy after setting it. |
+| Skin unlocks disappeared | They're stored per-browser in `localStorage` — a different browser/profile or cleared site data starts fresh. |
 
 ---
 

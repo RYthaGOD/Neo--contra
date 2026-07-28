@@ -2,12 +2,26 @@ import React, { createContext, useContext, useState, useCallback, useEffect, use
 import { WeaponType, SkinId } from '../config/constants';
 
 const SKIN_KEY = 'neocontra.skin';
+const OWNED_SKINS_KEY = 'neocontra.skins.owned';
+
+const isSkinId = (v: unknown): v is SkinId =>
+    v === 'DEFAULT' || v === 'GOLD' || v === 'SOLANA' || v === 'DIAMOND';
+
 const loadSkin = (): SkinId => {
     try {
         const s = localStorage.getItem(SKIN_KEY);
-        if (s === 'GOLD' || s === 'SOLANA' || s === 'DIAMOND' || s === 'DEFAULT') return s;
+        if (isSkinId(s)) return s;
     } catch { /* ignore unavailable storage */ }
     return 'DEFAULT';
+};
+
+// Skins bought with SOL. DEFAULT is free, so it's always in the list.
+const loadOwnedSkins = (): SkinId[] => {
+    try {
+        const parsed = JSON.parse(localStorage.getItem(OWNED_SKINS_KEY) ?? '[]');
+        if (Array.isArray(parsed)) return [...new Set<SkinId>(['DEFAULT', ...parsed.filter(isSkinId)])];
+    } catch { /* ignore unavailable or corrupt storage */ }
+    return ['DEFAULT'];
 };
 
 interface GameState {
@@ -15,7 +29,8 @@ interface GameState {
     score: number;
     weapon: WeaponType;
     weaponLevel: number;
-    skin: SkinId;     // cosmetic player skin; persists across runs
+    skin: SkinId;          // cosmetic player skin; persists across runs
+    ownedSkins: SkinId[];  // skins unlocked with SOL; persists across runs
     isShopOpen: boolean;
     isGameOver: boolean;
     won: boolean;
@@ -29,6 +44,7 @@ interface GameContextType {
     updateLives: (delta: number) => void;
     setWeapon: (val: WeaponType, level?: number) => void;
     setSkin: (val: SkinId) => void;
+    unlockSkin: (val: SkinId) => void;
     toggleShop: (open: boolean) => void;
     setGameOver: (over: boolean) => void;
     setVictory: (won: boolean) => void;
@@ -45,6 +61,7 @@ const DEFAULT_STATE: GameState = {
     weapon: 'NORMAL',
     weaponLevel: 1,
     skin: 'DEFAULT',
+    ownedSkins: ['DEFAULT'],
     isShopOpen: false,
     isGameOver: false,
     won: false,
@@ -53,7 +70,13 @@ const DEFAULT_STATE: GameState = {
 };
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [state, setState] = useState<GameState>({ ...DEFAULT_STATE, skin: loadSkin() });
+    const [state, setState] = useState<GameState>(() => {
+        const ownedSkins = loadOwnedSkins();
+        const skin = loadSkin();
+        // Guard against a saved selection the player no longer owns (e.g. a skin
+        // that used to be unlocked by a different rule).
+        return { ...DEFAULT_STATE, ownedSkins, skin: ownedSkins.includes(skin) ? skin : 'DEFAULT' };
+    });
     const stateRef = useRef(state);
     stateRef.current = state;
 
@@ -75,6 +98,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const setSkin = useCallback((val: SkinId) => {
         try { localStorage.setItem(SKIN_KEY, val); } catch { /* ignore */ }
         setState(prev => ({ ...prev, skin: val }));
+    }, []);
+
+    // Record a SOL-purchased skin so it stays unlocked on future visits.
+    const unlockSkin = useCallback((val: SkinId) => {
+        setState(prev => {
+            if (prev.ownedSkins.includes(val)) return prev;
+            const ownedSkins = [...prev.ownedSkins, val];
+            try { localStorage.setItem(OWNED_SKINS_KEY, JSON.stringify(ownedSkins)); } catch { /* ignore */ }
+            return { ...prev, ownedSkins };
+        });
     }, []);
 
     const toggleShop = useCallback((open: boolean) => {
@@ -104,8 +137,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     const resetGame = useCallback(() => {
-        // Keep the cosmetic skin — it's a holder unlock, not run state.
-        setState(prev => ({ ...DEFAULT_STATE, skin: prev.skin }));
+        // Keep cosmetics — skins are a paid unlock, not run state.
+        setState(prev => ({ ...DEFAULT_STATE, skin: prev.skin, ownedSkins: prev.ownedSkins }));
     }, []);
 
     // Keep registry lives/score readable to Phaser without re-creating callbacks
@@ -116,7 +149,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     return (
-        <GameContext.Provider value={{ state, updateScore, updateLives, setWeapon, setSkin, toggleShop, setGameOver, setVictory, setScene, revive, resetGame }}>
+        <GameContext.Provider value={{ state, updateScore, updateLives, setWeapon, setSkin, unlockSkin, toggleShop, setGameOver, setVictory, setScene, revive, resetGame }}>
             {children}
         </GameContext.Provider>
     );
