@@ -98,6 +98,20 @@ app.post('/api/scores', (req, res) => {
   }
 });
 
+// ── Digital Asset Links ─────────────────────────────────────────────
+// Must be real JSON with an application/json content type, served from the
+// site root. It proves to Android that this domain owns the dApp Store TWA
+// build, which is what lets the app run fullscreen instead of showing
+// Chrome's address bar. Served from the repo copy (not dist/) so it never
+// depends on whether the bundler copied a dot-directory, and registered
+// BEFORE the SPA catch-all below, which would otherwise answer it with
+// index.html.
+const ASSETLINKS = join(ROOT, 'public', '.well-known', 'assetlinks.json');
+app.get('/.well-known/assetlinks.json', (_req, res) => {
+  if (!existsSync(ASSETLINKS)) return res.status(404).json({ error: 'not_configured' });
+  res.type('application/json').sendFile(ASSETLINKS);
+});
+
 // ── Static game (built by `vite build`) ───────────────────────────────────────
 if (existsSync(DIST)) {
   app.use(express.static(DIST));

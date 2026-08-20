@@ -8,6 +8,14 @@ served from the same origin by `server/index.mjs`. No external database.
 **Project URL:** https://railway.com/project/12d8bd0d-660e-450a-8ffc-fe2e8328e054  
 **GitHub Repo:** https://github.com/RYthaGOD/Neo--contra
 
+
+> **This deploy also ships the Android app.** The Solana dApp Store build is a
+> Trusted Web Activity pointing at this same Railway domain, so a web deploy
+> updates the published app too — no APK rebuild needed for gameplay changes.
+> Two things here are load-bearing for it: `/.well-known/assetlinks.json` must
+> keep returning JSON, and `/manifest.json` must keep returning the web
+> manifest. See [DAPP_STORE.md](./DAPP_STORE.md).
+
 ---
 
 ## 0. Before you start

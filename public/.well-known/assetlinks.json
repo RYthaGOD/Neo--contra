@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.neocontra.game",
+      "sha256_cert_fingerprints": [
+        "DF:7B:04:5C:6C:88:CE:39:D3:6A:13:70:1E:23:94:58:93:38:8B:9D:66:2C:70:27:3E:5B:60:78:36:DC:A0:BC"
+      ]
+    }
+  }
+]

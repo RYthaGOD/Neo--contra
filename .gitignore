@@ -32,3 +32,18 @@ data/
 *.njsproj
 *.sln
 *.sw?
+
+# ── Android / Solana dApp Store (TWA build) ──
+# The generated Android project is reproducible from android/twa-manifest.json
+# (`bubblewrap update`), so only that config is tracked — never the build output.
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/*.apk
+android/*.aab
+android/*.idsig
+# Release signing keys must NEVER be committed. The real one lives outside the
+# repo entirely (see docs/DAPP_STORE.md); this is a safety net.
+*.keystore
+*.jks

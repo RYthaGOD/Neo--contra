@@ -81,3 +81,8 @@ Mobile shows an on-screen joystick + Jump/Fire buttons automatically (touch only
 ---
 
 Developed by **Rykiri**
+
+## Publishing
+
+- **Web (Railway):** [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
+- **Android / Solana dApp Store:** [docs/DAPP_STORE.md](docs/DAPP_STORE.md)
