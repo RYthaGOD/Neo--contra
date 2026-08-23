@@ -165,16 +165,27 @@ Connect Phantom or Solflare via Mobile Wallet Adapter. All purchases are
 plain SOL transfers; there is no token to buy and nothing is custodial.
 ```
 
+**Privacy policy URL** (the Portal requires one):
+
+```
+https://neo-contra-production.up.railway.app/privacy
+```
+
 ### What review will look at
 
 - **Payments.** Every purchase is a native `SystemProgram.transfer` of SOL to the
   treasury wallet ([`src/solana/TransactionLogic.ts`](../src/solana/TransactionLogic.ts)).
   Nothing custodial, no SPL token, no in-app currency. Prices live in
   [`src/config/constants.ts`](../src/config/constants.ts).
-- **Privacy.** The app stores skins/unlocks in `localStorage` and submits
-  `{wallet address, score, level}` to the bundled leaderboard. You will need a
-  privacy policy URL for the listing — the Portal asks for one, and the publisher
-  policy requires disclosing data practices.
+- **Privacy.** Policy is live at
+  **https://neo-contra-production.up.railway.app/privacy** — use that as the
+  listing's privacy policy URL. It documents the only two things the app touches:
+  `localStorage` for skins/unlocks, and an opt-in leaderboard POST of
+  `{wallet address, score, level}` that fires only when the player presses SUBMIT
+  SCORE with a wallet connected. There are no analytics, ads or trackers in the
+  build. Source: [`public/privacy.html`](../public/privacy.html); served at the
+  clean `/privacy` by a route in [`server/index.mjs`](../server/index.mjs)
+  registered before the SPA catch-all.
 - **Age rating.** The game has cartoon pixel-art violence and real-money (SOL)
   purchases. Rate it honestly.
 

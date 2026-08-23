@@ -112,6 +112,16 @@ app.get('/.well-known/assetlinks.json', (_req, res) => {
   res.type('application/json').sendFile(ASSETLINKS);
 });
 
+// ── Privacy policy ─────────────────────────────────────────────────
+// The Solana dApp Store listing requires a privacy policy URL. Served at a
+// clean /privacy (as well as /privacy.html via express.static) and registered
+// before the SPA catch-all, which would otherwise answer it with index.html.
+app.get('/privacy', (_req, res) => {
+  const f = join(DIST, 'privacy.html');
+  if (!existsSync(f)) return res.status(404).send('Not found');
+  res.sendFile(f);
+});
+
 // ── Static game (built by `vite build`) ───────────────────────────────────────
 if (existsSync(DIST)) {
   app.use(express.static(DIST));

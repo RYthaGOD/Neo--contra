@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Privacy Policy — NeoContra: Solana Assault</title>
+<meta name="theme-color" content="#000000" />
+<link rel="icon" href="/pwa-192x192.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:#05050a; --panel:#0b0b14; --line:#2a2a3d;
+    --text:#c9c9d8; --dim:#8a8aa0; --green:#00ff66; --cyan:#22d3ee; --purple:#9945ff;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:2rem 1rem 4rem; background:var(--bg); color:var(--text);
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:15px; line-height:1.75;
+  }
+  .wrap { max-width:760px; margin:0 auto; }
+  h1 {
+    font-family:'Press Start 2P',ui-monospace,monospace; font-size:1.25rem;
+    line-height:1.6; color:var(--green); margin:0 0 .4rem;
+    text-shadow:0 0 12px rgba(0,255,102,.45);
+  }
+  .sub { font-family:'Press Start 2P',ui-monospace,monospace; font-size:.6rem; color:var(--cyan); letter-spacing:.05em; }
+  .meta { color:var(--dim); font-size:.82rem; margin:.75rem 0 2rem; }
+  h2 {
+    font-family:'Press Start 2P',ui-monospace,monospace; font-size:.72rem; line-height:1.7;
+    color:var(--purple); margin:2.5rem 0 .85rem; padding-top:1.25rem; border-top:1px solid var(--line);
+  }
+  a { color:var(--cyan); }
+  ul { padding-left:1.15rem; }
+  li { margin:.5rem 0; }
+  strong { color:#fff; }
+  code { color:var(--green); background:var(--panel); padding:.1rem .35rem; border-radius:3px; font-size:.9em; }
+  .card { background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--green); padding:1rem 1.25rem; margin:1.25rem 0; }
+  .card.warn { border-left-color:var(--purple); }
+  footer { margin-top:3.5rem; padding-top:1.25rem; border-top:1px solid var(--line); color:var(--dim); font-size:.82rem; }
+  @media (max-width:520px){ body{font-size:14px;} h1{font-size:1rem;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Privacy Policy</h1>
+  <div class="sub">NEOCONTRA: SOLANA ASSAULT</div>
+  <p class="meta">Last updated: 23 August 2026</p>
+
+  <p>
+    NeoContra: Solana Assault is a browser-based game, also distributed as an
+    Android app through the Solana dApp Store. This policy describes exactly what
+    the game does and does not collect. It is written to match the code, not to
+    cover hypotheticals.
+  </p>
+
+  <div class="card">
+    <strong>The short version.</strong> There are no accounts, no sign-up, no email,
+    no analytics, no advertising and no tracking of any kind. The only thing that
+    ever leaves your device is a leaderboard entry — and only if you press
+    <strong>SUBMIT SCORE</strong> yourself.
+  </div>
+
+  <h2>What is stored on your device</h2>
+  <p>Saved in your browser's <code>localStorage</code>, on your device only:</p>
+  <ul>
+    <li><code>neocontra.skin</code> — which player skin you have equipped.</li>
+    <li><code>neocontra.skins.owned</code> — which cosmetic skins you have unlocked.</li>
+  </ul>
+  <p>
+    This never leaves your device and is never transmitted to us. Clearing your
+    browser or app storage erases it, which also clears your unlocked cosmetics.
+  </p>
+
+  <h2>What is sent to us</h2>
+  <p>
+    Exactly one thing, and only when you choose it. If you have a wallet connected
+    and press <strong>SUBMIT SCORE</strong> on the game-over screen, the game sends:
+  </p>
+  <ul>
+    <li>your wallet's <strong>public address</strong>;</li>
+    <li>your <strong>score</strong>;</li>
+    <li>the <strong>level you reached</strong>.</li>
+  </ul>
+  <p>
+    We store those three values with a timestamp so the global leaderboard can be
+    ranked and displayed. A public wallet address is by design public information
+    and is shown on the leaderboard. If you never press SUBMIT SCORE, nothing is
+    ever sent.
+  </p>
+  <p>
+    We do not collect your name, email address, phone number, contacts, photos,
+    location, or any device identifier. We do not use cookies for tracking.
+  </p>
+
+  <h2>Payments</h2>
+  <p>
+    Purchases in the Armory, cosmetic skins and pay-to-continue revives are plain
+    transfers of <strong>SOL</strong>, signed by your own wallet and sent directly to the
+    game's treasury address on the Solana blockchain.
+  </p>
+  <div class="card warn">
+    We never take custody of your funds, and we never see, request, store or
+    transmit your private keys or seed phrase. Every transaction is approved by
+    you inside your own wallet app. Solana transactions are public and permanent
+    by the nature of a public blockchain.
+  </div>
+
+  <h2>Third parties</h2>
+  <p>Using the game causes requests to these services, which will see your IP address:</p>
+  <ul>
+    <li>
+      <strong>Our host (Railway).</strong> Serves the game and the leaderboard API, and
+      keeps standard server logs.
+    </li>
+    <li>
+      <strong>A Solana RPC provider.</strong> Used to read balances and broadcast your
+      transactions to the network. It receives your wallet address and IP.
+    </li>
+    <li>
+      <strong>Google Fonts.</strong> Serves the retro typeface used by the interface.
+    </li>
+    <li>
+      <strong>Your wallet app</strong> (for example Phantom or Solflare). A separate
+      application governed by its own privacy policy.
+    </li>
+  </ul>
+  <p>We do not sell, rent or share your data with anyone, and there is no advertising in the game.</p>
+
+  <h2>Children</h2>
+  <p>
+    The game is not directed at children under 13, and we do not knowingly collect
+    information from them. It involves cartoon pixel-art violence and real-value
+    cryptocurrency purchases, and is intended for an adult audience.
+  </p>
+
+  <h2>Your choices and deletion</h2>
+  <ul>
+    <li><strong>Don't submit.</strong> Simply never press SUBMIT SCORE and nothing is sent.</li>
+    <li><strong>Play without a wallet.</strong> The game is fully playable unconnected; a wallet is only needed for purchases and the leaderboard.</li>
+    <li><strong>Local data.</strong> Clear your browser or app storage to erase everything held on your device.</li>
+    <li><strong>Leaderboard removal.</strong> Contact us with your wallet address and we will delete that entry.</li>
+  </ul>
+  <p>
+    On-chain transactions cannot be deleted by us or by anyone — that is a property
+    of the Solana blockchain, not a choice this game makes.
+  </p>
+
+  <h2>Changes</h2>
+  <p>
+    If this policy changes, the "last updated" date above changes with it. Material
+    changes will be noted in the game's release notes.
+  </p>
+
+  <h2>Contact</h2>
+  <p>
+    Questions or a deletion request:
+    <a href="mailto:craigrampersadh6@gmail.com">craigrampersadh6@gmail.com</a>
+  </p>
+
+  <footer>
+    <a href="/">&larr; Back to the game</a> &nbsp;·&nbsp; NeoContra: Solana Assault
+  </footer>
+
+</div>
+</body>
+</html>
