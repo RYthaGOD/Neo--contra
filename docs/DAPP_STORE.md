@@ -90,11 +90,13 @@ exists in `.env` and in the Railway service variables. See
 - [x] Release keystore generated and verified
 - [x] Signed release APK + AAB built and verified (v1/v2/v3 signature schemes)
 - [x] Listing assets generated in [`store/`](../store)
+- [x] Web changes deployed to Railway and verified live
+- [x] Final APK built against the live manifest — no localhost baked in,
+      `locales: '--_--'` (English only), landscape locked
+- [x] Digital Asset Links confirmed by Google's verifier (see below)
 
 **Left to do** — these need KYC, a wallet, and human review:
 
-- [ ] Deploy the web changes to Railway (see *Rebuilding the APK* below)
-- [ ] Rebuild the APK against the live manifest
 - [ ] Publisher Portal account + KYC/KYB
 - [ ] Submit, then wait 3–5 business days for review
 
@@ -294,6 +296,14 @@ Check it after any deploy:
 ```bash
 curl -i https://neo-contra-production.up.railway.app/.well-known/assetlinks.json
 # must be 200 with Content-Type: application/json
+```
+
+Or ask Google's verifier directly — this is what Android itself consults, so a
+matching `packageName` + `sha256Fingerprint` in the response is proof the app
+will launch full screen:
+
+```bash
+curl "https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://neo-contra-production.up.railway.app&relation=delegate_permission/common.handle_all_urls"
 ```
 
 If this regresses the app still runs, but with a Chrome address bar across the

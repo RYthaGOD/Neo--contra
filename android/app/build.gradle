@@ -83,7 +83,7 @@ android {
             // The URL the Web Manifest for the Progressive Web App that the TWA points to. This
             // is used by Chrome OS and Meta Quest to open the Web version of the PWA instead of
             // the TWA, as it will probably give a better user experience for non-mobile devices.
-            resValue "string", "webManifestUrl", 'http://localhost:3999/manifest.json'
+            resValue "string", "webManifestUrl", 'https://neo-contra-production.up.railway.app/manifest.json'
         
 
         
